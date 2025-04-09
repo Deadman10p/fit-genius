@@ -1,3 +1,4 @@
+
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -5,7 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  User
+  User,
+  browserLocalPersistence
 } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -25,7 +27,7 @@ const auth = getAuth(app);
 
 // Enable Firebase Auth persistence to keep users logged in
 // This ensures the user session persists across page refreshes
-auth.setPersistence("local");
+auth.setPersistence(browserLocalPersistence);
 
 export { 
   auth, 
