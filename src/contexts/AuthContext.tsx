@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("Auth state changed:", user ? "User logged in" : "No user");
       setCurrentUser(user);
       setLoading(false);
     });
@@ -44,15 +45,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Attempting sign in with:", email);
       await signInWithEmailAndPassword(auth, email, password);
+      console.log("Sign in successful");
       toast({
         title: "Signed in successfully",
         description: "Welcome back to FitGenius!",
       });
     } catch (error: any) {
+      console.error("Sign in error:", error);
+      let errorMessage = "Failed to sign in. Please check your credentials.";
+      
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many attempts. Please try again later";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection";
+      }
+      
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -61,15 +75,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     try {
+      console.log("Attempting sign up with:", email);
       await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Sign up successful");
       toast({
         title: "Account created successfully",
         description: "Welcome to FitGenius!",
       });
     } catch (error: any) {
+      console.error("Signup error:", error);
+      let errorMessage = "Failed to create account";
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Email already in use";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection";
+      }
+      
       toast({
         title: "Sign up failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -78,15 +107,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      console.log("Attempting to sign out");
       await firebaseSignOut(auth);
+      console.log("Sign out successful");
       toast({
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
     } catch (error: any) {
+      console.error("Sign out error:", error);
       toast({
         title: "Sign out failed",
-        description: error.message,
+        description: error.message || "Failed to sign out",
         variant: "destructive",
       });
       throw error;
