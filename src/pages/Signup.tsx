@@ -15,7 +15,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const signupSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -32,6 +33,8 @@ const Signup = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -44,11 +47,23 @@ const Signup = () => {
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
+    setError(null);
+    
     try {
+      console.log("Submitting signup form with email:", data.email);
       await signUp(data.email, data.password);
+      console.log("Signup successful, navigating to home");
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
+      setError(error.message || "Failed to create account. Please try again.");
+      
+      // Show a toast with error details for better user experience
+      toast({
+        title: "Signup Failed",
+        description: "Please check your details and try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +86,13 @@ const Signup = () => {
             </Link>
           </p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <span className="block sm:inline text-sm">{error}</span>
+          </div>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("Auth state changed:", user ? "User logged in" : "No user");
       setCurrentUser(user);
@@ -62,6 +63,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Too many attempts. Please try again later";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMessage = "Authentication service configuration error. Please try again later";
+        console.error("Firebase configuration error. Please check your Firebase setup");
       }
       
       toast({
@@ -94,6 +98,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Password is too weak";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMessage = "Authentication service configuration error. Please try again later";
+        console.error("Firebase configuration error. Please check your Firebase setup");
       }
       
       toast({
