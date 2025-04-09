@@ -6,7 +6,7 @@ import {
   createUserWithEmailAndPassword, 
   firebaseSignOut,
   onAuthStateChanged
-} from '@/lib/firebase';
+} from '@/config/firebase';
 import { User } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Sign in error:", error);
       let errorMessage = "Failed to sign in. Please check your credentials.";
       
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = "Invalid email or password";
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "Too many attempts. Please try again later";

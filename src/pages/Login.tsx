@@ -32,18 +32,21 @@ const Login = () => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: 'bulegafarid@gmail.com',
+      password: '123456',
     },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
+      console.log("Submitting login with:", data.email);
       await signIn(data.email, data.password);
+      console.log("Login successful, navigating to home");
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
+      // Error will be handled by the signIn function in AuthContext
     } finally {
       setIsLoading(false);
     }

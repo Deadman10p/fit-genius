@@ -6,7 +6,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User,
-  browserLocalPersistence
+  browserLocalPersistence,
+  setPersistence
 } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -26,7 +27,13 @@ const auth = getAuth(app);
 
 // Enable Firebase Auth persistence to keep users logged in
 // This ensures the user session persists across page refreshes
-auth.setPersistence(browserLocalPersistence);
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Persistence set successfully");
+  })
+  .catch((error) => {
+    console.error("Error setting persistence:", error);
+  });
 
 // Add error handler to catch initialization issues
 try {
@@ -42,4 +49,3 @@ export {
   firebaseSignOut,
   onAuthStateChanged
 };
-
