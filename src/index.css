@@ -134,11 +134,21 @@
   .dark img {
     @apply brightness-[0.85] contrast-[1.1];
   }
+  
+  /* Fix dark mode text visibility */
+  .dark .text-gray-600,
+  .dark .text-gray-500 {
+    @apply text-gray-300;
+  }
+  
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
 }
 
 @layer components {
   .theme-gradient {
-    @apply bg-gradient-to-r from-primary-dark via-primary to-primary-light;
+    @apply bg-gradient-to-r from-[hsl(var(--theme-primary-dark))] via-[hsl(var(--theme-primary))] to-[hsl(var(--theme-primary-light))];
   }
   
   .fitness-card {
@@ -146,15 +156,54 @@
   }
   
   .fitness-button {
-    @apply bg-primary text-white font-medium py-2 px-4 rounded-md hover:bg-primary-dark transition-colors duration-200;
+    @apply bg-[hsl(var(--primary))] text-white font-medium py-2 px-4 rounded-md hover:bg-[hsl(var(--theme-primary-dark))] transition-colors duration-200;
   }
   
   .fitness-input {
     @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm
-    focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+    focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:border-transparent transition-all duration-200;
   }
   
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary-dark;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--primary)_/_0.2)] text-[hsl(var(--theme-primary-dark))];
   }
+  
+  /* Dark mode specific component styles */
+  .dark .badge {
+    @apply bg-[hsl(var(--primary)_/_0.3)] text-[hsl(var(--theme-primary-light))];
+  }
+  
+  .dark .fitness-card {
+    @apply border border-gray-700;
+  }
+}
+
+/* Animations */
+@keyframes pulse-gold {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+  }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
 }

@@ -4,8 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Brain, Send, User, Award, X, Loader2 } from 'lucide-react';
-import { getPerplexityResponse } from '../utils/perplexityApi';
 import { useToast } from '@/hooks/use-toast';
+import { findRelevantAnswer } from '../utils/fitBotUtils';
 
 type Message = {
   id: number;
@@ -13,15 +13,6 @@ type Message = {
   isBot: boolean;
   timestamp: Date;
 };
-
-// Fallback responses if API fails
-const fallbackResponses = [
-  "Great job on completing your workout today! Keep up the momentum.",
-  "Remember to stay hydrated throughout your workout session.",
-  "For the best results, focus on proper form rather than lifting heavier weights.",
-  "Don't forget to include rest days in your routine - recovery is essential for progress!",
-  "Your dedication is inspiring! You're making great progress."
-];
 
 const FitBot = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -35,8 +26,6 @@ const FitBot = () => {
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('perplexityApiKey') || '');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!localStorage.getItem('perplexityApiKey'));
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -47,17 +36,6 @@ const FitBot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('perplexityApiKey', apiKey);
-      setShowApiKeyInput(false);
-      toast({
-        title: "API Key Saved",
-        description: "Your Perplexity API key has been saved.",
-      });
-    }
-  };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -75,27 +53,8 @@ const FitBot = () => {
     setIsLoading(true);
     
     try {
-      // Try to get response from Perplexity API if we have an API key
-      let botResponse: string | null = null;
-      
-      if (apiKey) {
-        botResponse = await getPerplexityResponse(input, apiKey);
-      }
-      
-      // If no API key or API call failed, use fallback
-      if (!botResponse) {
-        const randomIndex = Math.floor(Math.random() * fallbackResponses.length);
-        botResponse = fallbackResponses[randomIndex];
-        
-        // Show toast if API key exists but call failed
-        if (apiKey) {
-          toast({
-            title: "Couldn't connect to Perplexity",
-            description: "Using fallback responses instead. Please check your API key.",
-            variant: "destructive",
-          });
-        }
-      }
+      // Get response from our local knowledge base
+      const botResponse = findRelevantAnswer(input);
       
       const botReply: Message = {
         id: messages.length + 2,
@@ -104,7 +63,12 @@ const FitBot = () => {
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, botReply]);
+      // Add a small delay to simulate "thinking"
+      setTimeout(() => {
+        setMessages(prev => [...prev, botReply]);
+        setIsLoading(false);
+      }, 600);
+      
     } catch (error) {
       console.error('Error in chat:', error);
       toast({
@@ -112,7 +76,6 @@ const FitBot = () => {
         description: "Something went wrong with the chat. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -133,8 +96,8 @@ const FitBot = () => {
         <div 
           className={`max-w-[80%] px-4 py-2 rounded-xl ${
             isBot 
-              ? 'bg-gray-100 text-gray-800' 
-              : 'bg-gold text-white'
+              ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' 
+              : 'bg-gold text-white dark:bg-gold/90'
           }`}
         >
           <p className="text-sm">{message.text}</p>
@@ -181,52 +144,30 @@ const FitBot = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 h-80 overflow-y-auto">
-            {showApiKeyInput ? (
-              <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                <h3 className="font-medium mb-2">Enter your Perplexity API key</h3>
-                <p className="text-xs mb-3">This will be stored in your browser and only used for FitBot responses.</p>
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter your API key"
-                    className="text-sm"
-                  />
-                  <Button 
-                    onClick={handleApiKeySubmit}
-                    className="bg-gold hover:bg-gold-dark"
-                  >
-                    Save
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center mb-3">
-                <Award className="h-4 w-4 text-gold mr-1" />
-                <span className="text-xs text-gray-500">FitBot with Perplexity AI</span>
-              </div>
-            )}
+            <div className="flex items-center mb-3">
+              <Award className="h-4 w-4 text-gold mr-1" />
+              <span className="text-xs text-gray-500 dark:text-gray-400">FitBot AI Assistant</span>
+            </div>
             
             <div className="space-y-2">
               {messages.map(renderMessageBubble)}
               <div ref={messagesEndRef} />
             </div>
           </CardContent>
-          <CardFooter className="p-2 border-t border-gray-200">
+          <CardFooter className="p-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex w-full gap-2">
               <Input
                 placeholder="Ask about workout tips..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-                className="fitness-input"
-                disabled={isLoading || showApiKeyInput}
+                className="fitness-input dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                disabled={isLoading}
               />
               <Button 
                 onClick={handleSendMessage} 
                 size="icon" 
-                disabled={!input.trim() || isLoading || showApiKeyInput}
+                disabled={!input.trim() || isLoading}
                 className="bg-gold hover:bg-gold-dark"
               >
                 {isLoading ? (
