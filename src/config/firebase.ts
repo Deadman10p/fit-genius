@@ -1,3 +1,4 @@
+
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -7,8 +8,12 @@ import {
   onAuthStateChanged,
   User,
   browserLocalPersistence,
-  setPersistence
+  setPersistence,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // Update with your Firebase project details
@@ -36,6 +41,38 @@ setPersistence(auth, browserLocalPersistence)
     console.error("Error setting persistence:", error);
   });
 
+// Function to update user password with reauthentication
+const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+  const user = auth.currentUser;
+  
+  if (!user || !user.email) {
+    throw new Error("User not logged in or email not available");
+  }
+  
+  try {
+    // Reauthenticate user before changing password
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Update password
+    await updatePassword(user, newPassword);
+    return true;
+  } catch (error: any) {
+    console.error("Error updating password:", error);
+    
+    // Provide better error messages
+    if (error.code === 'auth/wrong-password') {
+      throw new Error('Current password is incorrect');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('New password is too weak');
+    } else if (error.code === 'auth/requires-recent-login') {
+      throw new Error('Please log in again before updating your password');
+    } else {
+      throw error;
+    }
+  }
+};
+
 // Add error handler to catch initialization issues
 try {
   console.log("Firebase initialized successfully");
@@ -44,9 +81,11 @@ try {
 }
 
 export { 
+  app,
   auth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateUserPassword
 };
