@@ -27,7 +27,9 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					dark: 'hsl(var(--theme-primary-dark))',
+					light: 'hsl(var(--theme-primary-light))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -63,6 +65,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// Legacy color definitions kept for backward compatibility
 				gold: {
 					DEFAULT: '#D4AF37',
 					light: '#F4E6B5',
@@ -99,13 +102,13 @@ export default {
 						height: '0'
 					}
 				},
-				'pulse-gold': {
+				'pulse-theme': {
 					'0%, 100%': { 
 						opacity: '1' 
 					},
 					'50%': { 
 						opacity: '0.7',
-						boxShadow: '0 0 15px rgba(212, 175, 55, 0.7)' 
+						boxShadow: '0 0 15px rgba(var(--theme-color-rgb), 0.7)' 
 					}
 				},
 				'fade-in-up': {
@@ -122,7 +125,7 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-gold': 'pulse-gold 2s infinite',
+				'pulse-theme': 'pulse-theme 2s infinite',
 				'fade-in-up': 'fade-in-up 0.5s ease-out'
 			},
 			fontFamily: {
