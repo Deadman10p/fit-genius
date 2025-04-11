@@ -42,7 +42,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const { theme } = useTheme();
 
   const form = useForm<FormData>({
@@ -55,7 +55,7 @@ const Login = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await login(data.email, data.password);
+      await signIn(data.email, data.password);
       
       // Log analytics event
       logAnalyticsEvent("login", {

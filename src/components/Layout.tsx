@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, signOut } = useAuth();
   const { theme } = useTheme();
 
   const menuItems = [

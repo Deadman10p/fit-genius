@@ -68,7 +68,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -104,7 +104,7 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
-      await firebaseSignOut();
+      await signOut();
       navigate("/login");
     } catch (error: any) {
       toast.error(`Failed to sign out: ${error.message}`);
