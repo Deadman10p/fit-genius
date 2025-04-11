@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import WorkoutCard from '@/components/WorkoutCard';
@@ -10,6 +9,7 @@ import FitBot from '@/components/FitBot';
 import { Layout } from '@/components/Layout';
 import { getWorkouts } from '@/services/workoutService';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 const Workouts = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -39,7 +39,6 @@ const Workouts = () => {
     <Layout>
       <div className="min-h-screen bg-background">
         <main className="container mx-auto px-4 py-8">
-          {/* Page Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">Workouts</h1>
@@ -51,7 +50,6 @@ const Workouts = () => {
             </Button>
           </div>
           
-          {/* Search & Filters */}
           <div className="bg-card p-4 rounded-lg shadow-sm mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
@@ -97,7 +95,6 @@ const Workouts = () => {
             </div>
           </div>
           
-          {/* Workouts Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, index) => (
@@ -146,7 +143,6 @@ const Workouts = () => {
           )}
         </main>
         
-        {/* FitBot */}
         <FitBot />
       </div>
     </Layout>
