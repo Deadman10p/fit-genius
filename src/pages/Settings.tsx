@@ -230,9 +230,9 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="theme-mode">Dark Mode</Label>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Switch between light and dark themes
-                  </FormDescription>
+                  </p>
                 </div>
                 <Switch
                   id="theme-mode"
@@ -290,9 +290,9 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Receive notifications via email
-                  </FormDescription>
+                  </p>
                 </div>
                 <Switch
                   id="email-notifications"
@@ -303,9 +303,9 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="push-notifications">Push Notifications</Label>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Receive notifications on your device
-                  </FormDescription>
+                  </p>
                 </div>
                 <Switch
                   id="push-notifications"
@@ -316,9 +316,9 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="in-app-alerts">In-App Alerts</Label>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Receive notifications within the app
-                  </FormDescription>
+                  </p>
                 </div>
                 <Switch
                   id="in-app-alerts"
