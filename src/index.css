@@ -16,7 +16,12 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 20%;
 
-    --primary: 43 65% 52%;
+    /* Default Gold Theme */
+    --theme-primary: 43 65% 52%;
+    --theme-primary-dark: 43 65% 42%;
+    --theme-primary-light: 43 65% 62%;
+    
+    --primary: var(--theme-primary);
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
@@ -25,7 +30,7 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 43 65% 52%;
+    --accent: var(--theme-primary);
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -33,18 +38,18 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 43 65% 52%;
+    --ring: var(--theme-primary);
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 43 65% 52%;
+    --sidebar-primary: var(--theme-primary);
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 20%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 43 65% 52%;
+    --sidebar-ring: var(--theme-primary);
   }
 
   .dark {
@@ -57,7 +62,7 @@
     --popover: 0 0% 15%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 43 65% 52%;
+    --primary: var(--theme-primary);
     --primary-foreground: 0 0% 10%;
 
     --secondary: 0 0% 20%;
@@ -66,7 +71,7 @@
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 43 65% 52%;
+    --accent: var(--theme-primary);
     --accent-foreground: 0 0% 10%;
 
     --destructive: 0 62.8% 30.6%;
@@ -74,16 +79,41 @@
 
     --border: 0 0% 25%;
     --input: 0 0% 25%;
-    --ring: 43 65% 52%;
+    --ring: var(--theme-primary);
     
     --sidebar-background: 0 0% 15%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 43 65% 52%;
+    --sidebar-primary: var(--theme-primary);
     --sidebar-primary-foreground: 0 0% 10%;
     --sidebar-accent: 0 0% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 43 65% 52%;
+    --sidebar-ring: var(--theme-primary);
+  }
+  
+  /* Theme colors */
+  .theme-gold {
+    --theme-primary: 43 65% 52%;
+    --theme-primary-dark: 43 65% 42%;
+    --theme-primary-light: 43 65% 62%;
+  }
+  
+  .theme-red {
+    --theme-primary: 0 72% 50%;
+    --theme-primary-dark: 0 72% 40%;
+    --theme-primary-light: 0 72% 60%;
+  }
+  
+  .theme-blue {
+    --theme-primary: 210 100% 50%;
+    --theme-primary-dark: 210 100% 40%;
+    --theme-primary-light: 210 100% 60%;
+  }
+  
+  .theme-green {
+    --theme-primary: 142 69% 42%;
+    --theme-primary-dark: 142 69% 32%;
+    --theme-primary-light: 142 69% 52%;
   }
 }
 
@@ -99,11 +129,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins font-semibold;
   }
+  
+  /* Improve dark mode image visibility */
+  .dark img {
+    @apply brightness-[0.85] contrast-[1.1];
+  }
 }
 
 @layer components {
-  .gold-gradient {
-    @apply bg-gradient-to-r from-gold-dark via-gold to-gold-light;
+  .theme-gradient {
+    @apply bg-gradient-to-r from-primary-dark via-primary to-primary-light;
   }
   
   .fitness-card {
@@ -111,15 +146,15 @@
   }
   
   .fitness-button {
-    @apply bg-gold text-white font-medium py-2 px-4 rounded-md hover:bg-gold-dark transition-colors duration-200;
+    @apply bg-primary text-white font-medium py-2 px-4 rounded-md hover:bg-primary-dark transition-colors duration-200;
   }
   
   .fitness-input {
     @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm
-    focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-200;
+    focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
   }
   
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gold/20 text-gold-dark;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary-dark;
   }
 }
