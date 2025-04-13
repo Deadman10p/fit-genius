@@ -1,0 +1,160 @@
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import HeightWeightStep from './steps/HeightWeightStep';
+import NameAgeStep from './steps/NameAgeStep';
+import WorkoutPreferencesStep from './steps/WorkoutPreferencesStep';
+import AllergiesStep from './steps/AllergiesStep';
+import SummaryStep from './steps/SummaryStep';
+
+const OnboardingFlow = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const { onboardingData, updateOnboardingData, saveOnboardingData } = useOnboarding();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  // Calculate total steps
+  const totalSteps = 5; // Height/Weight, Name/Age, Workout Preferences, Allergies, Summary
+
+  const handleNext = () => {
+    if (currentStep < totalSteps - 1) {
+      // Validation for each step
+      if (currentStep === 0 && (!onboardingData.height || !onboardingData.weight)) {
+        toast({
+          title: 'Missing information',
+          description: 'Please enter your height and weight to continue.',
+          variant: 'destructive',
+        });
+        return;
+      } else if (currentStep === 1 && !onboardingData.name) {
+        toast({
+          title: 'Missing information',
+          description: 'Please enter your name to continue.',
+          variant: 'destructive',
+        });
+        return;
+      } else if (currentStep === 2 && (!onboardingData.workoutDuration || !onboardingData.workoutDaysPerWeek)) {
+        toast({
+          title: 'Missing information',
+          description: 'Please enter your workout preferences to continue.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Calculate BMI if moving from height/weight step
+      if (currentStep === 0) {
+        calculateBMI();
+      }
+
+      setCurrentStep(prev => prev + 1);
+    } else {
+      handleComplete();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const calculateBMI = () => {
+    const height = parseFloat(onboardingData.height);
+    const weight = parseFloat(onboardingData.weight);
+
+    if (!height || !weight) return;
+
+    let heightInMeters = height;
+    let weightInKg = weight;
+
+    // Convert units if necessary
+    if (onboardingData.heightUnit === 'in') {
+      heightInMeters = height * 0.0254; // inches to meters
+    } else {
+      heightInMeters = height / 100; // cm to meters
+    }
+
+    if (onboardingData.weightUnit === 'lbs') {
+      weightInKg = weight * 0.453592; // pounds to kg
+    }
+
+    // Calculate BMI: weight (kg) / (height (m))^2
+    const bmi = weightInKg / (heightInMeters * heightInMeters);
+    
+    updateOnboardingData({ bmi: parseFloat(bmi.toFixed(1)) });
+  };
+
+  const handleComplete = async () => {
+    try {
+      // Mark onboarding as completed
+      updateOnboardingData({ completed: true });
+      
+      // Save data to Firebase
+      await saveOnboardingData();
+      
+      toast({
+        title: 'Setup completed!',
+        description: `Welcome, ${onboardingData.name}! Your preferences have been saved.`,
+      });
+      
+      // Redirect to home
+      navigate('/');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast({
+        title: 'Error saving your information',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            {currentStep === 0 && "Let's get started!"}
+            {currentStep === 1 && "Tell us about yourself"}
+            {currentStep === 2 && "Your workout preferences"}
+            {currentStep === 3 && "Any allergies?"}
+            {currentStep === 4 && "Almost done!"}
+          </CardTitle>
+          <CardDescription className="text-center">
+            Step {currentStep + 1} of {totalSteps}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          {currentStep === 0 && <HeightWeightStep />}
+          {currentStep === 1 && <NameAgeStep />}
+          {currentStep === 2 && <WorkoutPreferencesStep />}
+          {currentStep === 3 && <AllergiesStep />}
+          {currentStep === 4 && <SummaryStep />}
+        </CardContent>
+        
+        <CardFooter className="flex justify-between">
+          <Button 
+            variant="outline" 
+            onClick={handleBack}
+            disabled={currentStep === 0}
+          >
+            Back
+          </Button>
+          <Button onClick={handleNext}>
+            {currentStep < totalSteps - 1 ? 'Next' : 'Complete Setup'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+};
+
+export default OnboardingFlow;

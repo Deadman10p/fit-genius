@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Index from './pages/Index';
@@ -12,14 +12,30 @@ import Progress from './pages/Progress';
 import Community from './pages/Community';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useAuth } from './contexts/AuthContext';
+import { useOnboarding } from './contexts/OnboardingContext';
 
 function App() {
   const location = useLocation();
   const { currentUser } = useAuth();
+  const { onboardingData, isLoading } = useOnboarding();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Define routes that don't require authentication
   const publicRoutes = ['/login', '/signup'];
+  
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (currentUser && !isLoading) {
+      setShowOnboarding(!onboardingData.completed);
+    }
+  }, [currentUser, onboardingData.completed, isLoading]);
+  
+  // Show onboarding if needed
+  if (currentUser && showOnboarding && !publicRoutes.includes(location.pathname)) {
+    return <OnboardingFlow />;
+  }
   
   return (
     <AnimatePresence mode="wait">

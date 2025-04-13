@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { Brain, Send, User, Award, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findRelevantAnswer } from '../utils/fitBotUtils';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 type Message = {
   id: number;
@@ -15,19 +16,32 @@ type Message = {
 };
 
 const FitBot = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Hi there! I'm your FitBot assistant. How can I help with your fitness journey today?",
-      isBot: true,
-      timestamp: new Date()
-    }
-  ]);
+  const { onboardingData } = useOnboarding();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Generate personalized welcome message using user's name
+  useEffect(() => {
+    if (onboardingData.name) {
+      setMessages([{
+        id: 1,
+        text: `Welcome back, ${onboardingData.name}! Ready for your workout today? How can I help with your fitness journey?`,
+        isBot: true,
+        timestamp: new Date()
+      }]);
+    } else {
+      setMessages([{
+        id: 1,
+        text: "Hi there! I'm your FitBot assistant. How can I help with your fitness journey today?",
+        isBot: true,
+        timestamp: new Date()
+      }]);
+    }
+  }, [onboardingData.name]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,7 +68,7 @@ const FitBot = () => {
     
     try {
       // Get response from our local knowledge base
-      const botResponse = findRelevantAnswer(input);
+      const botResponse = findRelevantAnswer(input, onboardingData);
       
       const botReply: Message = {
         id: messages.length + 2,
@@ -140,7 +154,7 @@ const FitBot = () => {
           <CardHeader className="bg-gold/10 pb-2">
             <CardTitle className="text-lg flex items-center">
               <Brain className="h-5 w-5 mr-2 text-gold" />
-              FitBot Assistant
+              {onboardingData.name ? `${onboardingData.name}'s Fitness Assistant` : 'FitBot Assistant'}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 h-80 overflow-y-auto">
