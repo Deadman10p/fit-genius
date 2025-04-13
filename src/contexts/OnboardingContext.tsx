@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { firebase } from '@/config/firebase';
+import { getFirestore, doc, getDoc, setDoc, collection } from 'firebase/firestore';
+import { app } from '@/config/firebase';
 
 type OnboardingData = {
   name: string;
@@ -52,6 +53,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [onboardingData, setOnboardingData] = useState<OnboardingData>(defaultOnboardingData);
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser } = useAuth();
+  const db = getFirestore(app);
 
   // Load onboarding data from Firebase when user logs in
   useEffect(() => {
@@ -63,11 +65,11 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       setIsLoading(true);
       try {
-        const db = firebase.firestore();
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
         
-        if (userDoc.exists) {
-          const userData = userDoc.data();
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
           if (userData?.onboarding) {
             setOnboardingData({
               ...defaultOnboardingData,
@@ -83,7 +85,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     loadOnboardingData();
-  }, [currentUser]);
+  }, [currentUser, db]);
 
   const updateOnboardingData = (data: Partial<OnboardingData>) => {
     setOnboardingData(prev => ({ ...prev, ...data }));
@@ -93,8 +95,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!currentUser) return;
 
     try {
-      const db = firebase.firestore();
-      await db.collection('users').doc(currentUser.uid).set({
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userDocRef, {
         onboarding: onboardingData,
       }, { merge: true });
     } catch (error) {
