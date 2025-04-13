@@ -1,164 +1,16 @@
-
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Menu, User, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { currentUser, signOut } = useAuth();
-  const { theme } = useTheme();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   return (
-    <nav className={`${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} shadow-sm sticky top-0 z-50`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <span className="font-poppins font-bold text-2xl theme-gradient bg-clip-text text-transparent">
-                FitGenius
-              </span>
-            </Link>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/workouts" className="text-foreground hover:text-primary transition-colors">
-              Workouts
-            </Link>
-            <Link to="/nutrition" className="text-foreground hover:text-primary transition-colors">
-              Nutrition
-            </Link>
-            <Link to="/progress" className="text-foreground hover:text-primary transition-colors">
-              Progress
-            </Link>
-            <Link to="/community" className="text-foreground hover:text-primary transition-colors">
-              Community
-            </Link>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5 text-foreground" />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-            </Button>
-            
-            {currentUser ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5 text-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuLabel className="text-sm font-normal opacity-70">{currentUser.email}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings">Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
-                Sign In
-              </Button>
-            )}
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="h-5 w-5 text-foreground" />
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className={`md:hidden ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'} pb-3 px-4 animate-fade-in-up`}>
-          <div className="flex flex-col space-y-3">
-            <Link 
-              to="/workouts" 
-              className="text-foreground hover:text-primary transition-colors py-2 border-b"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Workouts
-            </Link>
-            <Link 
-              to="/nutrition" 
-              className="text-foreground hover:text-primary transition-colors py-2 border-b"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Nutrition
-            </Link>
-            <Link 
-              to="/progress" 
-              className="text-foreground hover:text-primary transition-colors py-2 border-b"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Progress
-            </Link>
-            <Link 
-              to="/community" 
-              className="text-foreground hover:text-primary transition-colors py-2 border-b"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Community
-            </Link>
-            {!currentUser && (
-              <Link 
-                to="/login" 
-                className="text-primary hover:text-primary-dark transition-colors py-2 border-b"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-            )}
-            {currentUser && (
-              <button 
-                onClick={() => {
-                  handleSignOut();
-                  setMobileMenuOpen(false);
-                }}
-                className="text-red-500 hover:text-red-700 transition-colors py-2 border-b text-left"
-              >
-                Sign Out
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+    <nav className="hidden">
+      {/* This component is no longer in use */}
     </nav>
   );
 };

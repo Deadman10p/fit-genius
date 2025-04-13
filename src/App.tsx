@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -11,6 +10,7 @@ import Nutrition from './pages/Nutrition';
 import Progress from './pages/Progress';
 import Community from './pages/Community';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useAuth } from './contexts/AuthContext';
@@ -57,6 +57,21 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route 
+          path="/profile" 
+          element={
+            <RequireAuth>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Profile />
+              </motion.div>
+            </RequireAuth>
+          } 
+        />
         <Route 
           path="/workouts" 
           element={
