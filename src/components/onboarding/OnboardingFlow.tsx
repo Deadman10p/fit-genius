@@ -28,13 +28,17 @@ const OnboardingFlow = () => {
     
     if (currentStep < totalSteps - 1) {
       // Validation for each step
-      if (currentStep === 0 && (!onboardingData.height || !onboardingData.weight)) {
-        toast({
-          title: 'Missing information',
-          description: 'Please enter your height and weight to continue.',
-          variant: 'destructive',
-        });
-        return;
+      if (currentStep === 0) {
+        if (!onboardingData.height || !onboardingData.weight) {
+          toast({
+            title: 'Missing information',
+            description: 'Please enter your height and weight to continue.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        // Calculate BMI here before moving to next step
+        calculateBMI();
       } else if (currentStep === 1 && !onboardingData.name) {
         toast({
           title: 'Missing information',
@@ -51,11 +55,6 @@ const OnboardingFlow = () => {
         return;
       }
 
-      // Calculate BMI if moving from height/weight step
-      if (currentStep === 0) {
-        calculateBMI();
-      }
-
       setCurrentStep(prev => prev + 1);
     } else {
       handleComplete(e);
@@ -70,41 +69,55 @@ const OnboardingFlow = () => {
   };
 
   const calculateBMI = () => {
-    const height = parseFloat(onboardingData.height);
-    const weight = parseFloat(onboardingData.weight);
+    try {
+      const height = parseFloat(onboardingData.height);
+      const weight = parseFloat(onboardingData.weight);
 
-    if (!height || !weight) return;
+      if (!height || !weight || isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+        console.error("Invalid height or weight values:", { height, weight });
+        return;
+      }
 
-    let heightInMeters: number;
-    let weightInKg: number;
+      let heightInMeters: number;
+      let weightInKg: number;
 
-    // Convert units if necessary
-    if (onboardingData.heightUnit === 'in') {
-      heightInMeters = height * 0.0254; // inches to meters
-    } else {
-      heightInMeters = height / 100; // cm to meters
-    }
+      // Convert units if necessary
+      if (onboardingData.heightUnit === 'in') {
+        heightInMeters = height * 0.0254; // inches to meters
+      } else {
+        heightInMeters = height / 100; // cm to meters
+      }
 
-    if (onboardingData.weightUnit === 'lbs') {
-      weightInKg = weight * 0.453592; // pounds to kg
-    } else {
-      weightInKg = weight;
-    }
+      if (onboardingData.weightUnit === 'lbs') {
+        weightInKg = weight * 0.453592; // pounds to kg
+      } else {
+        weightInKg = weight;
+      }
 
-    // Calculate BMI: weight (kg) / (height (m))^2
-    const bmi = weightInKg / (heightInMeters * heightInMeters);
-    
-    // Check for valid BMI calculation
-    if (isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
+      // Calculate BMI: weight (kg) / (height (m))^2
+      const bmi = weightInKg / (heightInMeters * heightInMeters);
+      
+      // Check for valid BMI calculation
+      if (isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
+        console.error("Invalid BMI calculation:", { heightInMeters, weightInKg, bmi });
+        toast({
+          title: 'Invalid measurements',
+          description: 'Please check your height and weight values.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      console.log("BMI calculated:", bmi, "using height (m):", heightInMeters, "weight (kg):", weightInKg);
+      updateOnboardingData({ bmi: parseFloat(bmi.toFixed(1)) });
+    } catch (error) {
+      console.error("Error in BMI calculation:", error);
       toast({
-        title: 'Invalid measurements',
-        description: 'Please check your height and weight values.',
+        title: 'Calculation Error',
+        description: 'There was an error calculating your BMI.',
         variant: 'destructive',
       });
-      return;
     }
-    
-    updateOnboardingData({ bmi: parseFloat(bmi.toFixed(1)) });
   };
 
   const handleComplete = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -113,9 +126,16 @@ const OnboardingFlow = () => {
     
     setIsSubmitting(true);
     try {
+      // Final validation
+      if (!onboardingData.name || !onboardingData.height || !onboardingData.weight) {
+        throw new Error("Missing required information");
+      }
+      
       // Save data to Firebase
+      console.log("Saving onboarding data...");
       await saveOnboardingData();
       
+      console.log("Onboarding completed successfully");
       toast({
         title: 'Setup completed!',
         description: `Welcome, ${onboardingData.name}! Your preferences have been saved.`,

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import BmiCalculator from '@/components/BmiCalculator';
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Index = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const featuresRef = useRef<HTMLElement>(null);
 
   const handleGetStarted = () => {
     if (currentUser) {
@@ -24,7 +25,7 @@ const Index = () => {
 
   const handleLearnMore = () => {
     // Scroll to the features section
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -67,7 +68,7 @@ const Index = () => {
         <DashboardStats />
         
         {/* Features Section */}
-        <section id="features" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
+        <section id="features" ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
           <FeatureCard 
             icon={<Dumbbell className="h-8 w-8 text-gold" />}
             title="Personalized Workouts"

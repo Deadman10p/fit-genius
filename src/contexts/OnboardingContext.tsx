@@ -68,17 +68,28 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       setIsLoading(true);
       try {
+        console.log("Loading onboarding data for user:", currentUser.uid);
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
+          console.log("User data loaded:", userData);
           if (userData?.onboarding) {
             setOnboardingData({
               ...defaultOnboardingData,
               ...userData.onboarding,
             });
+            console.log("Onboarding data set:", userData.onboarding);
           }
+        } else {
+          console.log("No user document found, creating default");
+          // Create a default document for new users
+          await setDoc(userDocRef, { 
+            email: currentUser.email,
+            created: new Date(),
+            onboarding: defaultOnboardingData
+          });
         }
       } catch (error) {
         console.error("Error loading onboarding data:", error);
@@ -110,15 +121,34 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     try {
+      console.log("Saving onboarding data:", onboardingData);
       const userDocRef = doc(db, 'users', currentUser.uid);
       
-      // Use merge: true to only update the onboarding field without overwriting other data
-      await setDoc(userDocRef, {
+      // First check if the user document exists
+      const docSnap = await getDoc(userDocRef);
+      
+      const dataToSave = {
         onboarding: {
           ...onboardingData,
           completed: true,
-        },
-      }, { merge: true });
+        }
+      };
+      
+      console.log("Data being saved:", dataToSave);
+      
+      if (!docSnap.exists()) {
+        // Create the complete document if it doesn't exist
+        await setDoc(userDocRef, {
+          email: currentUser.email,
+          created: new Date(),
+          ...dataToSave
+        });
+        console.log("Created new user document with onboarding data");
+      } else {
+        // Update only the onboarding field
+        await setDoc(userDocRef, dataToSave, { merge: true });
+        console.log("Updated existing user document with onboarding data");
+      }
       
       // Update local state to reflect the completed status
       setOnboardingData(prev => ({

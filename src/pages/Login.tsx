@@ -48,8 +48,8 @@ const Login = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "bulegafarid@gmail.com",
-      password: "123456",
+      email: "",
+      password: "",
     },
   });
 
@@ -94,7 +94,7 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
                 <FormField
                   control={form.control}
                   name="email"
@@ -102,7 +102,12 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="your.email@example.com" {...field} type="email" />
+                        <Input 
+                          placeholder="your.email@example.com" 
+                          {...field} 
+                          type="email" 
+                          autoComplete="off" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -115,7 +120,12 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="******" {...field} type="password" />
+                        <Input 
+                          placeholder="******" 
+                          {...field} 
+                          type="password" 
+                          autoComplete="new-password" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

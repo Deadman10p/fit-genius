@@ -1,51 +1,51 @@
 
-import React from "react";
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarFooter, 
-  SidebarHeader, 
-  SidebarProvider,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent
-} from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import { NavLink, useNavigate } from "react-router-dom";
-import { 
-  Home, 
+  User, 
   Dumbbell, 
   Utensils, 
   LineChart, 
-  Users, 
   Settings, 
-  LogOut,
-  User,
-  Moon,
+  Users, 
+  MapPin,
+  LogOut, 
+  Moon, 
   Sun 
-} from "lucide-react";
-import { Button } from "./ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useOnboarding } from "@/contexts/OnboardingContext";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useMobile } from '@/hooks/use-mobile';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-export const Layout = ({ children }: { children: React.ReactNode }) => {
+export function Layout({ children }: { children: React.ReactNode }) {
   const { currentUser, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const { onboardingData } = useOnboarding();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  const isMobile = useMobile();
+  const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   const menuItems = [
-    { title: "Home", path: "/", icon: Home },
-    { title: "Workouts", path: "/workouts", icon: Dumbbell },
-    { title: "Nutrition", path: "/nutrition", icon: Utensils },
-    { title: "Progress", path: "/progress", icon: LineChart },
-    { title: "Community", path: "/community", icon: Users },
-    { title: "Settings", path: "/settings", icon: Settings },
+    { name: 'Profile', path: '/profile', icon: User },
+    { name: 'Workouts', path: '/workouts', icon: Dumbbell },
+    { name: 'Nutrition', path: '/nutrition', icon: Utensils },
+    { name: 'Progress', path: '/progress', icon: LineChart },
+    { name: 'Community', path: '/community', icon: Users },
+    { name: 'Gym Locator', path: '/gym-locator', icon: MapPin },
+    { name: 'Settings', path: '/settings', icon: Settings },
   ];
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -61,117 +61,138 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        {currentUser && (
-          <Sidebar variant="sidebar">
-            <SidebarHeader className="flex items-center justify-center p-4">
-              <h1 className="text-xl font-bold text-primary">FitGenius</h1>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarGroup>
-                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {menuItems.map((item) => (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton 
-                          asChild 
-                          tooltip={item.title}
-                          isActive={window.location.pathname === item.path}
-                        >
-                          <NavLink to={item.path} className="w-full">
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-              
-              <SidebarGroup>
-                <SidebarGroupLabel>Account</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        asChild 
-                        tooltip="Profile"
-                        isActive={window.location.pathname === "/profile"}
-                      >
-                        <NavLink to="/profile" className="w-full">
-                          <User className="h-4 w-4" />
-                          <span>Profile</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-            <SidebarFooter className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleTheme}
-                  aria-label="Toggle theme"
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="h-4 w-4" />
-                  ) : (
-                    <Moon className="h-4 w-4" />
-                  )}
-                </Button>
-                
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={currentUser?.photoURL || ""} alt={onboardingData?.name || "User"} />
-                    <AvatarFallback className="text-xs">
-                      {onboardingData?.name ? onboardingData.name.charAt(0).toUpperCase() : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-xs text-muted-foreground truncate max-w-[120px]">
-                    {currentUser?.email}
-                  </div>
-                </div>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-center gap-2" 
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
-              </Button>
-            </SidebarFooter>
-          </Sidebar>
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "bg-card border-r border-border transition-all duration-300 flex flex-col",
+          isCollapsed ? "w-16" : "w-64"
         )}
-        <div className="flex flex-col w-full min-h-screen">
-          <div className="sticky top-0 z-20 flex items-center justify-end px-4 py-2 bg-background border-b">
-            {currentUser && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+      >
+        {/* Logo */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          {!isCollapsed && (
+            <h1 className="text-xl font-bold text-primary">FitGenius</h1>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleSidebar}
+            className={cn(
+              "p-2",
+              isCollapsed && "mx-auto"
             )}
-          </div>
-          <main className="flex-1">
-            {children}
-          </main>
+          >
+            {isCollapsed ? "→" : "←"}
+          </Button>
         </div>
-      </div>
-    </SidebarProvider>
+
+        {/* Menu Items */}
+        <nav className="flex-1 overflow-y-auto pt-4">
+          <ul className="space-y-2 px-2">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              const Icon = item.icon;
+              
+              return (
+                <li key={item.name}>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={isActive ? "secondary" : "ghost"}
+                          size={isCollapsed ? "icon" : "default"}
+                          className={cn(
+                            "w-full justify-start",
+                            isActive && "font-semibold"
+                          )}
+                          onClick={() => navigate(item.path)}
+                        >
+                          <Icon className={cn(
+                            "mr-2 h-5 w-5",
+                            isCollapsed && "mr-0"
+                          )} />
+                          {!isCollapsed && <span>{item.name}</span>}
+                        </Button>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.name}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-border">
+          <div className="flex flex-col space-y-2">
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={isCollapsed ? "icon" : "default"}
+                    onClick={toggleTheme}
+                    className="w-full justify-start"
+                  >
+                    {theme === "dark" ? (
+                      <Sun className={cn(
+                        "mr-2 h-5 w-5",
+                        isCollapsed && "mr-0"
+                      )} />
+                    ) : (
+                      <Moon className={cn(
+                        "mr-2 h-5 w-5",
+                        isCollapsed && "mr-0"
+                      )} />
+                    )}
+                    {!isCollapsed && <span>Toggle Theme</span>}
+                  </Button>
+                </TooltipTrigger>
+                {isCollapsed && (
+                  <TooltipContent side="right">
+                    Toggle Theme
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={isCollapsed ? "icon" : "default"}
+                    onClick={handleSignOut}
+                    className="w-full justify-start"
+                  >
+                    <LogOut className={cn(
+                      "mr-2 h-5 w-5",
+                      isCollapsed && "mr-0"
+                    )} />
+                    {!isCollapsed && <span>Sign Out</span>}
+                  </Button>
+                </TooltipTrigger>
+                {isCollapsed && (
+                  <TooltipContent side="right">
+                    Sign Out
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
+    </div>
   );
-};
+}
