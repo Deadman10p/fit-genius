@@ -12,7 +12,8 @@ import {
   MapPin,
   LogOut, 
   Moon, 
-  Sun 
+  Sun,
+  LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   const menuItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Profile', path: '/profile', icon: User },
     { name: 'Workouts', path: '/workouts', icon: Dumbbell },
     { name: 'Nutrition', path: '/nutrition', icon: Utensils },

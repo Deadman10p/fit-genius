@@ -1,33 +1,31 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import './index.css';
+import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ColorThemeProvider } from './contexts/ColorThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
-import { Toaster } from './components/ui/toaster';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OnboardingProvider } from './contexts/OnboardingContext';
-
-const queryClient = new QueryClient();
+import { LanguageProvider } from './contexts/LanguageContext';
+import { Toaster } from './components/ui/sonner';
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <ColorThemeProvider>
-          <Router>
-            <AuthProvider>
-              <OnboardingProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider>
+          <ColorThemeProvider>
+            <OnboardingProvider>
+              <LanguageProvider>
                 <App />
-                <Toaster />
-              </OnboardingProvider>
-            </AuthProvider>
-          </Router>
-        </ColorThemeProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </React.StrictMode>,
+                <Toaster position="top-right" />
+              </LanguageProvider>
+            </OnboardingProvider>
+          </ColorThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );

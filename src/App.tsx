@@ -13,6 +13,7 @@ import Community from './pages/Community';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import GymLocator from './pages/GymLocator';
+import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useAuth } from './contexts/AuthContext';
@@ -60,21 +61,30 @@ function App() {
     );
   };
   
+  // Redirect logged-in users from '/' to '/dashboard'
+  const renderHomePage = () => {
+    if (currentUser) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Index />
+      </motion.div>
+    );
+  };
+  
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Index />
-          </motion.div>
-        } />
+        <Route path="/" element={renderHomePage()} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={withLayout(Dashboard)} />
         <Route path="/profile" element={withLayout(Profile)} />
         <Route path="/workouts" element={withLayout(Workouts)} />
         <Route path="/workouts/:id" element={withLayout(WorkoutDetail)} />
