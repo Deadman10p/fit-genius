@@ -110,7 +110,6 @@ const GymLocator = () => {
   useEffect(() => {
     const initMap = async () => {
       try {
-        // In a real app, this API key would be environment variable
         const loader = new Loader({
           apiKey: "AIzaSyNotYourActualKey123456789",
           version: "weekly",
@@ -148,7 +147,6 @@ const GymLocator = () => {
             title: "Location Error",
             description: "Failed to get your location. Using default location.",
           });
-          // Default to New York City if location is not available
           setUserLocation({ lat: 40.7128, lng: -74.0060 });
         }
       );
@@ -157,7 +155,6 @@ const GymLocator = () => {
         title: "Location Not Supported",
         description: "Geolocation is not supported by your browser.",
       });
-      // Default to New York City
       setUserLocation({ lat: 40.7128, lng: -74.0060 });
     }
   };
@@ -165,14 +162,12 @@ const GymLocator = () => {
   // Initialize map when user location is available
   useEffect(() => {
     if (userLocation && mapRef.current && googleMapsLoaded && window.google) {
-      // Create new map
       googleMapRef.current = new window.google.maps.Map(mapRef.current, {
         center: userLocation,
         zoom: 13,
         mapTypeControl: false,
       });
 
-      // Add user marker
       new window.google.maps.Marker({
         position: userLocation,
         map: googleMapRef.current,
@@ -187,12 +182,9 @@ const GymLocator = () => {
         title: "Your Location",
       });
 
-      // In a real app, we would make a Places API request here
-      // For now, we'll simulate with mock data
       setGyms(mockGymData);
       setLoading(false);
       
-      // Add markers for gyms
       addGymMarkers(mockGymData);
     }
   }, [userLocation, googleMapsLoaded]);
@@ -201,11 +193,9 @@ const GymLocator = () => {
   const addGymMarkers = (gyms: Gym[]) => {
     if (!googleMapRef.current || !window.google) return;
     
-    // Clear any existing markers
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
     
-    // Add new markers
     gyms.forEach(gym => {
       const marker = new window.google.maps.Marker({
         position: gym.location,
@@ -226,8 +216,6 @@ const GymLocator = () => {
   const handleSearch = () => {
     setLoading(true);
     
-    // In a real app, this would filter based on a Places API request
-    // For now, we'll simply filter our mock data
     const filteredGyms = mockGymData.filter(gym => 
       gym.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -240,109 +228,105 @@ const GymLocator = () => {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto py-6 px-4">
-        <h1 className="text-2xl font-bold mb-6">Find Gyms Near You</h1>
+    <div className="container mx-auto py-6 px-4">
+      <h1 className="text-2xl font-bold mb-6">Find Gyms Near You</h1>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-2/3 h-[400px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg bg-gray-100 dark:bg-gray-800">
+          {loading ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div ref={mapRef} className="h-full w-full"></div>
+          )}
+        </div>
         
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Map container */}
-          <div className="lg:w-2/3 h-[400px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg bg-gray-100 dark:bg-gray-800">
-            {loading ? (
-              <div className="h-full flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="lg:w-1/3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Search Gyms</CardTitle>
+              <CardDescription>Find gyms in your area</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex mb-4">
+                <Input
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mr-2"
+                />
+                <Button onClick={handleSearch} size="icon">
+                  <Search className="h-4 w-4" />
+                </Button>
               </div>
-            ) : (
-              <div ref={mapRef} className="h-full w-full"></div>
-            )}
-          </div>
+              
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {gyms.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500">No gyms found</p>
+                ) : (
+                  gyms.map((gym) => (
+                    <Card 
+                      key={gym.id} 
+                      className={`cursor-pointer ${selectedGym?.id === gym.id ? 'border-primary' : ''}`}
+                      onClick={() => setSelectedGym(gym)}
+                    >
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-lg">{gym.name}</CardTitle>
+                        <CardDescription className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {gym.vicinity}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
           
-          {/* Sidebar with gym list and search */}
-          <div className="lg:w-1/3">
-            <Card>
+          {selectedGym && (
+            <Card className="mt-4">
               <CardHeader>
-                <CardTitle>Search Gyms</CardTitle>
-                <CardDescription>Find gyms in your area</CardDescription>
+                <CardTitle>{selectedGym.name}</CardTitle>
+                <CardDescription>Gym Details</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex mb-4">
-                  <Input
-                    placeholder="Search by name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="mr-2"
-                  />
-                  <Button onClick={handleSearch} size="icon">
-                    <Search className="h-4 w-4" />
-                  </Button>
+              <CardContent className="space-y-3">
+                <div>
+                  <h3 className="font-semibold flex items-center">
+                    <Clock className="h-4 w-4 mr-2" /> Opening Hours
+                  </h3>
+                  <ul className="text-sm pl-6 mt-1">
+                    {selectedGym.openingHours?.weekdayText.map((day, idx) => (
+                      <li key={idx}>{day}</li>
+                    ))}
+                  </ul>
                 </div>
                 
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                  {gyms.length === 0 ? (
-                    <p className="text-center py-4 text-gray-500">No gyms found</p>
-                  ) : (
-                    gyms.map((gym) => (
-                      <Card 
-                        key={gym.id} 
-                        className={`cursor-pointer ${selectedGym?.id === gym.id ? 'border-primary' : ''}`}
-                        onClick={() => setSelectedGym(gym)}
-                      >
-                        <CardHeader className="p-4">
-                          <CardTitle className="text-lg">{gym.name}</CardTitle>
-                          <CardDescription className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {gym.vicinity}
-                          </CardDescription>
-                        </CardHeader>
-                      </Card>
-                    ))
-                  )}
+                <div>
+                  <h3 className="font-semibold flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2" /> Membership Fee
+                  </h3>
+                  <p className="text-sm pl-6">{selectedGym.fees}</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold flex items-center">
+                    <Phone className="h-4 w-4 mr-2" /> Contact
+                  </h3>
+                  <p className="text-sm pl-6">{selectedGym.phone}</p>
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button className="w-full" onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedGym.location.lat},${selectedGym.location.lng}`, '_blank')}>
+                  Get Directions
+                </Button>
+              </CardFooter>
             </Card>
-            
-            {selectedGym && (
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle>{selectedGym.name}</CardTitle>
-                  <CardDescription>Gym Details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <h3 className="font-semibold flex items-center">
-                      <Clock className="h-4 w-4 mr-2" /> Opening Hours
-                    </h3>
-                    <ul className="text-sm pl-6 mt-1">
-                      {selectedGym.openingHours?.weekdayText.map((day, idx) => (
-                        <li key={idx}>{day}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-semibold flex items-center">
-                      <DollarSign className="h-4 w-4 mr-2" /> Membership Fee
-                    </h3>
-                    <p className="text-sm pl-6">{selectedGym.fees}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-semibold flex items-center">
-                      <Phone className="h-4 w-4 mr-2" /> Contact
-                    </h3>
-                    <p className="text-sm pl-6">{selectedGym.phone}</p>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedGym.location.lat},${selectedGym.location.lng}`, '_blank')}>
-                    Get Directions
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-          </div>
+          )}
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 
