@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Tooltip,
   TooltipContent,
@@ -30,7 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   const menuItems = [

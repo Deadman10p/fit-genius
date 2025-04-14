@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
-import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -106,6 +104,7 @@ const GymLocator = () => {
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const { toast } = useToast();
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
 
   // Load Google Maps API
   useEffect(() => {
@@ -119,6 +118,7 @@ const GymLocator = () => {
         });
 
         await loader.load();
+        setGoogleMapsLoaded(true);
         getUserLocation();
       } catch (error) {
         console.error("Error loading Google Maps API:", error);
@@ -164,20 +164,20 @@ const GymLocator = () => {
 
   // Initialize map when user location is available
   useEffect(() => {
-    if (userLocation && mapRef.current && window.google) {
+    if (userLocation && mapRef.current && googleMapsLoaded && window.google) {
       // Create new map
-      googleMapRef.current = new google.maps.Map(mapRef.current, {
+      googleMapRef.current = new window.google.maps.Map(mapRef.current, {
         center: userLocation,
         zoom: 13,
         mapTypeControl: false,
       });
 
       // Add user marker
-      new google.maps.Marker({
+      new window.google.maps.Marker({
         position: userLocation,
         map: googleMapRef.current,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
+          path: window.google.maps.SymbolPath.CIRCLE,
           scale: 10,
           fillColor: "#4285F4",
           fillOpacity: 1,
@@ -195,11 +195,11 @@ const GymLocator = () => {
       // Add markers for gyms
       addGymMarkers(mockGymData);
     }
-  }, [userLocation]);
+  }, [userLocation, googleMapsLoaded]);
 
   // Add markers for gyms on the map
   const addGymMarkers = (gyms: Gym[]) => {
-    if (!googleMapRef.current) return;
+    if (!googleMapRef.current || !window.google) return;
     
     // Clear any existing markers
     markersRef.current.forEach(marker => marker.setMap(null));
@@ -207,11 +207,11 @@ const GymLocator = () => {
     
     // Add new markers
     gyms.forEach(gym => {
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: gym.location,
         map: googleMapRef.current,
         title: gym.name,
-        animation: google.maps.Animation.DROP,
+        animation: window.google.maps.Animation.DROP,
       });
       
       marker.addListener("click", () => {
