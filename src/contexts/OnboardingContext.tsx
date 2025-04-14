@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { getFirestore, doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { app } from '@/config/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 type OnboardingData = {
   name: string;
@@ -54,11 +55,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser } = useAuth();
   const db = getFirestore(app);
+  const { toast } = useToast();
 
   // Load onboarding data from Firebase when user logs in
   useEffect(() => {
     const loadOnboardingData = async () => {
       if (!currentUser) {
+        setOnboardingData(defaultOnboardingData);
         setIsLoading(false);
         return;
       }
@@ -79,28 +82,57 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
       } catch (error) {
         console.error("Error loading onboarding data:", error);
+        toast({
+          title: "Error",
+          description: "Could not load your profile data. Please try again later.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadOnboardingData();
-  }, [currentUser, db]);
+  }, [currentUser, db, toast]);
 
   const updateOnboardingData = (data: Partial<OnboardingData>) => {
     setOnboardingData(prev => ({ ...prev, ...data }));
   };
 
   const saveOnboardingData = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save your profile",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const userDocRef = doc(db, 'users', currentUser.uid);
+      
       await setDoc(userDocRef, {
-        onboarding: onboardingData,
+        onboarding: {
+          ...onboardingData,
+          completed: true,
+        },
       }, { merge: true });
+      
+      // Update local state to reflect the completed status
+      setOnboardingData(prev => ({
+        ...prev,
+        completed: true
+      }));
+      
+      return;
     } catch (error) {
       console.error("Error saving onboarding data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your profile data. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };

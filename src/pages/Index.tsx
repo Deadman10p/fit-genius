@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import BmiCalculator from '@/components/BmiCalculator';
 import FitBot from '@/components/FitBot';
@@ -7,8 +8,25 @@ import DashboardStats from '@/components/DashboardStats';
 import FeaturedWorkouts from '@/components/FeaturedWorkouts';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Dumbbell, Utensils, LineChart, Award } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  const handleGetStarted = () => {
+    if (currentUser) {
+      navigate('/workouts');
+    } else {
+      navigate('/signup');
+    }
+  };
+
+  const handleLearnMore = () => {
+    // Scroll to the features section
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -29,11 +47,16 @@ const Index = () => {
               Personalized workouts, nutrition plans, and motivation - all in one place
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="fitness-button">
+              <Button size="lg" className="fitness-button" onClick={handleGetStarted}>
                 Get Started
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white/10">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-transparent text-white border-white hover:bg-white/10"
+                onClick={handleLearnMore}
+              >
                 Learn More
               </Button>
             </div>
@@ -44,7 +67,7 @@ const Index = () => {
         <DashboardStats />
         
         {/* Features Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
+        <section id="features" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
           <FeatureCard 
             icon={<Dumbbell className="h-8 w-8 text-gold" />}
             title="Personalized Workouts"
@@ -74,7 +97,7 @@ const Index = () => {
         <section className="my-12">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold mb-2">Know Your Fitness Level</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Use our BMI calculator to determine your fitness level and get personalized recommendations
             </p>
           </div>
@@ -161,7 +184,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) =
         {icon}
       </div>
       <h3 className="font-bold text-lg mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <p className="text-gray-600 dark:text-gray-400 text-sm">{description}</p>
     </div>
   );
 };

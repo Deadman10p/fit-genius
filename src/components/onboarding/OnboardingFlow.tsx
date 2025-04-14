@@ -18,6 +18,7 @@ const OnboardingFlow = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate total steps
   const totalSteps = 5; // Height/Weight, Name/Age, Workout Preferences, Allergies, Summary
@@ -71,8 +72,8 @@ const OnboardingFlow = () => {
 
     if (!height || !weight) return;
 
-    let heightInMeters = height;
-    let weightInKg = weight;
+    let heightInMeters: number;
+    let weightInKg: number;
 
     // Convert units if necessary
     if (onboardingData.heightUnit === 'in') {
@@ -83,19 +84,31 @@ const OnboardingFlow = () => {
 
     if (onboardingData.weightUnit === 'lbs') {
       weightInKg = weight * 0.453592; // pounds to kg
+    } else {
+      weightInKg = weight;
     }
 
     // Calculate BMI: weight (kg) / (height (m))^2
     const bmi = weightInKg / (heightInMeters * heightInMeters);
     
+    // Check for valid BMI calculation
+    if (isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
+      toast({
+        title: 'Invalid measurements',
+        description: 'Please check your height and weight values.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     updateOnboardingData({ bmi: parseFloat(bmi.toFixed(1)) });
   };
 
   const handleComplete = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
-      // Mark onboarding as completed
-      updateOnboardingData({ completed: true });
-      
       // Save data to Firebase
       await saveOnboardingData();
       
@@ -113,6 +126,8 @@ const OnboardingFlow = () => {
         description: 'Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,12 +159,15 @@ const OnboardingFlow = () => {
           <Button 
             variant="outline" 
             onClick={handleBack}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || isSubmitting}
           >
             Back
           </Button>
-          <Button onClick={handleNext}>
-            {currentStep < totalSteps - 1 ? 'Next' : 'Complete Setup'}
+          <Button 
+            onClick={handleNext} 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Saving...' : (currentStep < totalSteps - 1 ? 'Next' : 'Complete Setup')}
           </Button>
         </CardFooter>
       </Card>
