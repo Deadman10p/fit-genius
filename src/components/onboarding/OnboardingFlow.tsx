@@ -23,7 +23,9 @@ const OnboardingFlow = () => {
   // Calculate total steps
   const totalSteps = 5; // Height/Weight, Name/Age, Workout Preferences, Allergies, Summary
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent default form submission
+    
     if (currentStep < totalSteps - 1) {
       // Validation for each step
       if (currentStep === 0 && (!onboardingData.height || !onboardingData.weight)) {
@@ -56,11 +58,12 @@ const OnboardingFlow = () => {
 
       setCurrentStep(prev => prev + 1);
     } else {
-      handleComplete();
+      handleComplete(e);
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent default form submission
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
@@ -104,7 +107,8 @@ const OnboardingFlow = () => {
     updateOnboardingData({ bmi: parseFloat(bmi.toFixed(1)) });
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent default form submission
     if (isSubmitting) return;
     
     setIsSubmitting(true);
@@ -148,11 +152,13 @@ const OnboardingFlow = () => {
         </CardHeader>
         
         <CardContent>
-          {currentStep === 0 && <HeightWeightStep />}
-          {currentStep === 1 && <NameAgeStep />}
-          {currentStep === 2 && <WorkoutPreferencesStep />}
-          {currentStep === 3 && <AllergiesStep />}
-          {currentStep === 4 && <SummaryStep />}
+          <form onSubmit={(e) => e.preventDefault()}>
+            {currentStep === 0 && <HeightWeightStep />}
+            {currentStep === 1 && <NameAgeStep />}
+            {currentStep === 2 && <WorkoutPreferencesStep />}
+            {currentStep === 3 && <AllergiesStep />}
+            {currentStep === 4 && <SummaryStep />}
+          </form>
         </CardContent>
         
         <CardFooter className="flex justify-between">
@@ -160,12 +166,14 @@ const OnboardingFlow = () => {
             variant="outline" 
             onClick={handleBack}
             disabled={currentStep === 0 || isSubmitting}
+            type="button"
           >
             Back
           </Button>
           <Button 
             onClick={handleNext} 
             disabled={isSubmitting}
+            type="button"
           >
             {isSubmitting ? 'Saving...' : (currentStep < totalSteps - 1 ? 'Next' : 'Complete Setup')}
           </Button>

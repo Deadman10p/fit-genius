@@ -18,7 +18,7 @@ const Index = () => {
     if (currentUser) {
       navigate('/workouts');
     } else {
-      navigate('/signup');
+      navigate('/login');
     }
   };
 

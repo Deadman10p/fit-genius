@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { getFirestore, doc, getDoc, setDoc, collection } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { app } from '@/config/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -106,12 +106,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         description: "You must be logged in to save your profile",
         variant: "destructive",
       });
-      return;
+      return Promise.reject(new Error("Not logged in"));
     }
 
     try {
       const userDocRef = doc(db, 'users', currentUser.uid);
       
+      // Use merge: true to only update the onboarding field without overwriting other data
       await setDoc(userDocRef, {
         onboarding: {
           ...onboardingData,
@@ -125,7 +126,12 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         completed: true
       }));
       
-      return;
+      toast({
+        title: "Success",
+        description: "Your profile has been saved successfully!",
+      });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Error saving onboarding data:", error);
       toast({
@@ -133,7 +139,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         description: "Failed to save your profile data. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     }
   };
 

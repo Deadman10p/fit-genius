@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -15,6 +16,7 @@ import NotFound from './pages/NotFound';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useAuth } from './contexts/AuthContext';
 import { useOnboarding } from './contexts/OnboardingContext';
+import { Layout } from './components/Layout';
 
 function App() {
   const location = useLocation();
@@ -23,12 +25,14 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Define routes that don't require authentication
-  const publicRoutes = ['/login', '/signup'];
+  const publicRoutes = ['/login', '/signup', '/'];
   
   // Check if user needs onboarding
   useEffect(() => {
     if (currentUser && !isLoading) {
       setShowOnboarding(!onboardingData.completed);
+    } else {
+      setShowOnboarding(false);
     }
   }, [currentUser, onboardingData.completed, isLoading]);
   
@@ -36,145 +40,51 @@ function App() {
   if (currentUser && showOnboarding && !publicRoutes.includes(location.pathname)) {
     return <OnboardingFlow />;
   }
+
+  // For pages that need the Layout (sidebar)
+  const withLayout = (Component: React.ComponentType) => {
+    return currentUser ? (
+      <Layout>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Component />
+        </motion.div>
+      </Layout>
+    ) : (
+      <Navigate to="/login" replace />
+    );
+  };
   
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route 
-          path="/" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Index />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
+        <Route path="/" element={
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Index />
+          </motion.div>
+        } />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route 
-          path="/profile" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Profile />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/workouts" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Workouts />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/workouts/:id" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <WorkoutDetail />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/nutrition" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Nutrition />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/progress" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Progress />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/community" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Community />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            <RequireAuth>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Settings />
-              </motion.div>
-            </RequireAuth>
-          } 
-        />
+        <Route path="/profile" element={withLayout(Profile)} />
+        <Route path="/workouts" element={withLayout(Workouts)} />
+        <Route path="/workouts/:id" element={withLayout(WorkoutDetail)} />
+        <Route path="/nutrition" element={withLayout(Nutrition)} />
+        <Route path="/progress" element={withLayout(Progress)} />
+        <Route path="/community" element={withLayout(Community)} />
+        <Route path="/settings" element={withLayout(Settings)} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );
-  
-  function RequireAuth({ children }: { children: JSX.Element }) {
-    if (!currentUser && !publicRoutes.includes(location.pathname)) {
-      // Redirect to login if user is not authenticated and route is not public
-      return <Navigate to="/login" replace />;
-    }
-    
-    return children;
-  }
 }
 
 export default App;
