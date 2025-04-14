@@ -7,6 +7,8 @@ import { Brain, Send, User, Award, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findRelevantAnswer } from '../utils/fitBotUtils';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useColorTheme } from '@/contexts/ColorThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Message = {
   id: number;
@@ -17,6 +19,8 @@ type Message = {
 
 const FitBot = () => {
   const { onboardingData } = useOnboarding();
+  const { themeColor } = useColorTheme();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -29,19 +33,19 @@ const FitBot = () => {
     if (onboardingData.name) {
       setMessages([{
         id: 1,
-        text: `Welcome back, ${onboardingData.name}! Ready for your workout today? How can I help with your fitness journey?`,
+        text: `${t('fitbot.welcome')}`,
         isBot: true,
         timestamp: new Date()
       }]);
     } else {
       setMessages([{
         id: 1,
-        text: "Hi there! I'm your FitBot assistant. How can I help with your fitness journey today?",
+        text: t('fitbot.welcome'),
         isBot: true,
         timestamp: new Date()
       }]);
     }
-  }, [onboardingData.name]);
+  }, [onboardingData.name, t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,7 +91,7 @@ const FitBot = () => {
       console.error('Error in chat:', error);
       toast({
         title: "Error",
-        description: "Something went wrong with the chat. Please try again.",
+        description: t('fitbot.error'),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -103,15 +107,15 @@ const FitBot = () => {
         className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-3`}
       >
         {isBot && (
-          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gold/20 flex items-center justify-center mr-2">
-            <Brain size={16} className="text-gold" />
+          <div className={`flex-shrink-0 h-8 w-8 rounded-full bg-${themeColor}/20 flex items-center justify-center mr-2`}>
+            <Brain size={16} className={`text-${themeColor}`} />
           </div>
         )}
         <div 
           className={`max-w-[80%] px-4 py-2 rounded-xl ${
             isBot 
               ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' 
-              : 'bg-gold text-white dark:bg-gold/90'
+              : `bg-${themeColor} text-white dark:bg-${themeColor}/90`
           }`}
         >
           <p className="text-sm">{message.text}</p>
@@ -132,14 +136,23 @@ const FitBot = () => {
     setIsOpen(!isOpen);
   };
 
+  const getBgColor = () => {
+    if (isOpen) return 'bg-red-500';
+    switch (themeColor) {
+      case 'gold': return 'bg-gold animate-pulse-theme';
+      case 'red': return 'bg-red-500 animate-pulse-theme';
+      case 'blue': return 'bg-blue-500 animate-pulse-theme';
+      case 'green': return 'bg-green-500 animate-pulse-theme';
+      default: return 'bg-gold animate-pulse-theme';
+    }
+  };
+
   return (
     <>
       {/* Chat Button */}
       <button
         onClick={toggleChat}
-        className={`fixed bottom-4 right-4 p-3 rounded-full shadow-lg z-50 ${
-          isOpen ? 'bg-red-500' : 'bg-gold animate-pulse-gold'
-        }`}
+        className={`fixed bottom-4 right-4 p-3 rounded-full shadow-lg z-50 ${getBgColor()}`}
       >
         {isOpen ? (
           <X className="h-6 w-6 text-white" />
@@ -151,16 +164,16 @@ const FitBot = () => {
       {/* Chat Window */}
       {isOpen && (
         <Card className="fixed bottom-20 right-4 w-80 md:w-96 shadow-xl z-40 animate-fade-in-up">
-          <CardHeader className="bg-gold/10 pb-2">
+          <CardHeader className={`bg-${themeColor}/10 pb-2`}>
             <CardTitle className="text-lg flex items-center">
-              <Brain className="h-5 w-5 mr-2 text-gold" />
-              {onboardingData.name ? `${onboardingData.name}'s Fitness Assistant` : 'FitBot Assistant'}
+              <Brain className={`h-5 w-5 mr-2 text-${themeColor}`} />
+              {onboardingData.name ? `${onboardingData.name}'s Fitness Assistant` : t('fitbot.assistant')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 h-80 overflow-y-auto">
             <div className="flex items-center mb-3">
-              <Award className="h-4 w-4 text-gold mr-1" />
-              <span className="text-xs text-gray-500 dark:text-gray-400">FitBot AI Assistant</span>
+              <Award className={`h-4 w-4 text-${themeColor} mr-1`} />
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t('fitbot.assistant')}</span>
             </div>
             
             <div className="space-y-2">
@@ -171,7 +184,7 @@ const FitBot = () => {
           <CardFooter className="p-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex w-full gap-2">
               <Input
-                placeholder="Ask about workout tips..."
+                placeholder={t('fitbot.placeholder')}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
@@ -182,7 +195,7 @@ const FitBot = () => {
                 onClick={handleSendMessage} 
                 size="icon" 
                 disabled={!input.trim() || isLoading}
-                className="bg-gold hover:bg-gold-dark"
+                className={`bg-${themeColor} hover:bg-${themeColor}-dark`}
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

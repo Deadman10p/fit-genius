@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Tooltip,
@@ -28,6 +29,7 @@ import {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { currentUser, signOut } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
@@ -35,14 +37,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Profile', path: '/profile', icon: User },
-    { name: 'Workouts', path: '/workouts', icon: Dumbbell },
-    { name: 'Nutrition', path: '/nutrition', icon: Utensils },
-    { name: 'Progress', path: '/progress', icon: LineChart },
-    { name: 'Community', path: '/community', icon: Users },
-    { name: 'Gym Locator', path: '/gym-locator', icon: MapPin },
-    { name: 'Settings', path: '/settings', icon: Settings },
+    { name: t('nav.dashboard'), path: '/dashboard', icon: LayoutDashboard },
+    { name: t('nav.profile'), path: '/profile', icon: User },
+    { name: t('nav.workouts'), path: '/workouts', icon: Dumbbell },
+    { name: t('nav.nutrition'), path: '/nutrition', icon: Utensils },
+    { name: t('nav.progress'), path: '/progress', icon: LineChart },
+    { name: t('nav.community'), path: '/community', icon: Users },
+    { name: t('nav.gymLocator'), path: '/gym-locator', icon: MapPin },
+    { name: t('nav.settings'), path: '/settings', icon: Settings },
   ];
 
   const toggleSidebar = () => {
@@ -153,12 +155,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         isCollapsed && "mr-0"
                       )} />
                     )}
-                    {!isCollapsed && <span>Toggle Theme</span>}
+                    {!isCollapsed && <span>{t('nav.toggleTheme')}</span>}
                   </Button>
                 </TooltipTrigger>
                 {isCollapsed && (
                   <TooltipContent side="right">
-                    Toggle Theme
+                    {t('nav.toggleTheme')}
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -177,12 +179,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       "mr-2 h-5 w-5",
                       isCollapsed && "mr-0"
                     )} />
-                    {!isCollapsed && <span>Sign Out</span>}
+                    {!isCollapsed && <span>{t('nav.signOut')}</span>}
                   </Button>
                 </TooltipTrigger>
                 {isCollapsed && (
                   <TooltipContent side="right">
-                    Sign Out
+                    {t('nav.signOut')}
                   </TooltipContent>
                 )}
               </Tooltip>

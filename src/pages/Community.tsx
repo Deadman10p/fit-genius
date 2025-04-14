@@ -1,318 +1,221 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import FitBot from '@/components/FitBot';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Users, Heart, MessageCircle, Award, TrendingUp, Flag, PlusCircle, Filter } from 'lucide-react';
+import { CalendarDays, Users, MessageSquare, Trophy, Clock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-// Sample data for community
-const challenges = [
+// Mock data - would normally come from an API
+const leaderboardData = [
+  { id: 1, name: 'Alex Johnson', points: 1250, streak: 30, avatar: '/placeholder.svg' },
+  { id: 2, name: 'Sara Miller', points: 980, streak: 14, avatar: '/placeholder.svg' },
+  { id: 3, name: 'John Davis', points: 875, streak: 21, avatar: '/placeholder.svg' },
+  { id: 4, name: 'Emma Wilson', points: 760, streak: 10, avatar: '/placeholder.svg' },
+  { id: 5, name: 'Michael Brown', points: 685, streak: 8, avatar: '/placeholder.svg' },
+];
+
+const eventsData = [
   {
     id: 1,
-    title: '30-Day Push-Up Challenge',
-    description: 'Increase your push-up count by completing daily push-ups for 30 days.',
-    participants: 748,
-    image: 'https://images.unsplash.com/photo-1598971639058-aee79e11be1a?q=80&w=2376&auto=format&fit=crop',
-    daysLeft: 12,
-    level: 'Beginner'
+    title: 'Virtual 5K Challenge',
+    date: '2025-04-20T09:00:00Z',
+    participants: 124,
+    description: 'Join our virtual 5K run and compete with fitness enthusiasts from around the world.'
   },
   {
     id: 2,
-    title: 'Summer Shred Challenge',
-    description: 'Get beach-ready with this 6-week fat-burning and muscle-toning challenge.',
-    participants: 1254,
-    image: 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=2070&auto=format&fit=crop',
-    daysLeft: 20,
-    level: 'Intermediate'
+    title: 'Yoga for Beginners Workshop',
+    date: '2025-04-25T18:30:00Z',
+    participants: 56,
+    description: 'Learn the basics of yoga in this beginner-friendly virtual workshop.'
   },
   {
     id: 3,
-    title: 'Hydration Challenge',
-    description: 'Drink at least 2.5 liters of water every day for 14 days.',
-    participants: 952,
-    image: 'https://images.unsplash.com/photo-1548161126-7fd21a019c96?q=80&w=2487&auto=format&fit=crop',
-    daysLeft: 5,
-    level: 'Beginner'
-  },
-  {
-    id: 4,
-    title: 'Yoga Every Day',
-    description: 'Complete at least 15 minutes of yoga daily for 21 days.',
-    participants: 632,
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2520&auto=format&fit=crop',
-    daysLeft: 15,
-    level: 'All Levels'
+    title: 'Nutrition Masterclass',
+    date: '2025-05-02T19:00:00Z',
+    participants: 98,
+    description: 'Join our nutrition expert to learn meal planning strategies for fitness success.'
   }
 ];
 
-const posts = [
-  {
-    id: 1,
-    user: {
-      name: 'Emma Thompson',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      level: 'Gold Member'
-    },
-    content: 'Just completed my first 10K run! Feeling amazing and grateful for all the support from this community. The training plan from FitGenius really helped me prepare!',
-    time: '2 hours ago',
-    likes: 42,
-    comments: 12,
-    image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=2070&auto=format&fit=crop'
-  },
-  {
-    id: 2,
-    user: {
-      name: 'James Wilson',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      level: 'Silver Member'
-    },
-    content: 'Day 15 of the 30-day push-up challenge! Started at 10 push-ups and now I can do 25 in one go. Progress feels great!',
-    time: '5 hours ago',
-    likes: 28,
-    comments: 8,
-    image: null
-  },
-  {
-    id: 3,
-    user: {
-      name: 'Sophia Chen',
-      avatar: 'https://randomuser.me/api/portraits/women/33.jpg',
-      level: 'Platinum Member'
-    },
-    content: 'Meal prepping for the week! Here\'s my high-protein lunch boxes: grilled chicken, quinoa, roasted vegetables, and a tahini dressing. Simple but delicious and keeps me energized for afternoon workouts.',
-    time: '1 day ago',
-    likes: 56,
-    comments: 15,
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2070&auto=format&fit=crop'
-  }
-];
-
-const leaderboardUsers = [
-  { id: 1, name: 'Sarah Johnson', points: 2540, avatar: 'https://randomuser.me/api/portraits/women/21.jpg', rank: 1 },
-  { id: 2, name: 'Michael Chen', points: 2320, avatar: 'https://randomuser.me/api/portraits/men/67.jpg', rank: 2 },
-  { id: 3, name: 'Emma Wilson', points: 2180, avatar: 'https://randomuser.me/api/portraits/women/63.jpg', rank: 3 },
-  { id: 4, name: 'David Garcia', points: 1970, avatar: 'https://randomuser.me/api/portraits/men/43.jpg', rank: 4 },
-  { id: 5, name: 'You', points: 1850, avatar: '', rank: 5, isCurrentUser: true },
-  { id: 6, name: 'Alex Thompson', points: 1720, avatar: 'https://randomuser.me/api/portraits/men/72.jpg', rank: 6 },
-  { id: 7, name: 'Olivia Martinez', points: 1690, avatar: 'https://randomuser.me/api/portraits/women/25.jpg', rank: 7 },
+const forumTopics = [
+  { id: 1, title: 'Best protein sources for vegans', author: 'GreenFitness', replies: 28, lastActivity: '2025-04-12T14:36:00Z' },
+  { id: 2, title: 'How to stay motivated during winter', author: 'MotivatedRunner', replies: 42, lastActivity: '2025-04-13T09:22:00Z' },
+  { id: 3, title: 'Recovery techniques after intense workouts', author: 'FitnessCoach', replies: 19, lastActivity: '2025-04-14T11:15:00Z' }
 ];
 
 const Community = () => {
+  const { t } = useLanguage();
+
+  // Simulating API calls with React Query
+  const { data: leaderboard = leaderboardData } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: () => Promise.resolve(leaderboardData),
+    initialData: leaderboardData,
+  });
+
+  const { data: events = eventsData } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => Promise.resolve(eventsData),
+    initialData: eventsData,
+  });
+
+  const { data: forums = forumTopics } = useQuery({
+    queryKey: ['forums'],
+    queryFn: () => Promise.resolve(forumTopics),
+    initialData: forumTopics,
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Community</h1>
-            <p className="text-gray-600">Connect with fitness enthusiasts, join challenges, and share your journey</p>
-          </div>
-        </div>
-        
-        {/* Tabs */}
-        <Tabs defaultValue="feed" className="mb-8">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="feed">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Feed
-            </TabsTrigger>
-            <TabsTrigger value="challenges">
-              <Flag className="h-4 w-4 mr-2" />
-              Challenges
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Leaderboard
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="feed" className="mt-6 space-y-6">
-            {/* Create Post */}
-            <Card className="fitness-card">
-              <CardContent className="pt-6">
-                <div className="flex gap-3">
-                  <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>UN</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-grow">
-                    <Input placeholder="Share your fitness journey..." className="fitness-input" />
-                  </div>
-                </div>
-                <div className="flex justify-end mt-4">
-                  <Button className="fitness-button">
-                    Post Update
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Feed Posts */}
-            {posts.map((post) => (
-              <Card key={post.id} className="fitness-card overflow-hidden">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3 mb-4">
-                    <Avatar>
-                      <AvatarImage src={post.user.avatar} />
-                      <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{post.user.name}</h3>
-                        <Badge variant="outline" className="text-xs py-0">
-                          {post.user.level}
-                        </Badge>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">{t('community.title')}</h1>
+        <p className="text-muted-foreground">{t('community.description')}</p>
+      </div>
+
+      <Tabs defaultValue="leaderboard">
+        <TabsList className="mb-6">
+          <TabsTrigger value="leaderboard" className="flex items-center">
+            <Trophy className="mr-2 h-4 w-4" />
+            {t('community.leaderboard')}
+          </TabsTrigger>
+          <TabsTrigger value="events" className="flex items-center">
+            <CalendarDays className="mr-2 h-4 w-4" />
+            {t('community.events')}
+          </TabsTrigger>
+          <TabsTrigger value="forums" className="flex items-center">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            {t('community.forums')}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="leaderboard">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('community.leaderboard')}</CardTitle>
+              <CardDescription>Top performers in the FitGenius community</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b dark:border-gray-700">
+                      <th className="pb-3 text-left">{t('community.rank')}</th>
+                      <th className="pb-3 text-left">{t('community.user')}</th>
+                      <th className="pb-3 text-right">{t('community.points')}</th>
+                      <th className="pb-3 text-right">{t('community.streak')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leaderboard.map((user, index) => (
+                      <tr key={user.id} className="border-b dark:border-gray-700">
+                        <td className="py-4 text-lg font-bold text-primary dark:text-white">{index + 1}</td>
+                        <td className="py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarImage src={user.avatar} alt={user.name} />
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {user.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium dark:text-white">{user.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 text-right font-semibold dark:text-white">{user.points.toLocaleString()}</td>
+                        <td className="py-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="font-semibold dark:text-white">{user.streak}</span>
+                            <span className="text-sm text-muted-foreground">days</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="events">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {events.map(event => (
+              <Card key={event.id} className="h-full flex flex-col">
+                <CardHeader>
+                  <CardTitle>{event.title}</CardTitle>
+                  <CardDescription>
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center gap-1">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <span>{formatDate(event.date)}</span>
                       </div>
-                      <p className="text-xs text-gray-500">{post.time}</p>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.participants}</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <p className="mb-4">{post.content}</p>
-                  
-                  {post.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
-                      <img 
-                        src={post.image} 
-                        alt="Post" 
-                        className="w-full h-64 object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-between mt-2 pt-3 border-t">
-                    <Button variant="ghost" size="sm" className="text-gray-600">
-                      <Heart className="h-4 w-4 mr-2" />
-                      {post.likes}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-gray-600">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      {post.comments}
-                    </Button>
-                  </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <p className="mb-4">{event.description}</p>
+                  <Button className="w-full">{t('community.joinEvent')}</Button>
                 </CardContent>
               </Card>
             ))}
-          </TabsContent>
-          
-          <TabsContent value="challenges" className="mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Active Challenges</h2>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-                <Button className="fitness-button" size="sm">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create Challenge
-                </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="forums">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>{t('community.forums')}</CardTitle>
+                <Button size="sm">New Topic</Button>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {challenges.map((challenge) => (
-                <Card key={challenge.id} className="fitness-card overflow-hidden flex flex-col h-full">
-                  <div className="relative">
-                    <img 
-                      src={challenge.image} 
-                      alt={challenge.title} 
-                      className="w-full h-40 object-cover"
-                    />
-                    <Badge className="absolute top-2 right-2 bg-gold">
-                      {challenge.level}
-                    </Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {forums.map(topic => (
+                  <div key={topic.id} className="border-b dark:border-gray-700 pb-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-semibold dark:text-white">{topic.title}</h3>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{topic.replies}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        By <span className="font-medium">{topic.author}</span>
+                      </span>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>{formatDate(topic.lastActivity)}</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <CardHeader>
-                    <CardTitle>{challenge.title}</CardTitle>
-                    <CardDescription>{challenge.description}</CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="flex-grow">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-gold" />
-                      <span>{challenge.participants} participants</span>
-                    </div>
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium">{challenge.daysLeft} days</span> left to join
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter>
-                    <Button className="w-full fitness-button">
-                      Join Challenge
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="leaderboard" className="mt-6">
-            <Card className="fitness-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-6 w-6 text-gold" />
-                  Weekly FitCoin Leaderboard
-                </CardTitle>
-                <CardDescription>
-                  Top performers based on FitCoins earned from workouts, challenges, and consistency
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="space-y-1">
-                  {leaderboardUsers.map((user) => (
-                    <div 
-                      key={user.id} 
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        user.isCurrentUser ? 'bg-gold/10 border border-gold/20' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${
-                          user.rank <= 3 ? 'bg-gold text-white' : 'bg-gray-100'
-                        }`}>
-                          {user.rank}
-                        </div>
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                          {user.avatar ? (
-                            <AvatarImage src={user.avatar} />
-                          ) : (
-                            <AvatarFallback className="bg-gold/20 text-gold">
-                              {user.name.charAt(0)}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          {user.isCurrentUser && (
-                            <span className="text-xs text-gold">That's you!</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="font-bold">{user.points}</span>
-                        <Award className="h-4 w-4 text-gold ml-1" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      {/* FitBot */}
-      <FitBot />
+                ))}
+              </div>
+              <div className="mt-6 text-center">
+                <Button variant="outline">{t('community.viewAll')}</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

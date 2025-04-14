@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Search, Filter, Dumbbell } from 'lucide-react';
-import FitBot from '@/components/FitBot';
 import { getWorkouts } from '@/services/workoutService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Workouts = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filterLevel, setFilterLevel] = React.useState('all');
   const [filterCategory, setFilterCategory] = React.useState('all');
@@ -40,12 +41,12 @@ const Workouts = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Workouts</h1>
-            <p className="text-muted-foreground">Find the perfect workout for your fitness level and goals</p>
+            <h1 className="text-3xl font-bold mb-2">{t('workouts.title')}</h1>
+            <p className="text-muted-foreground">{t('workouts.description')}</p>
           </div>
           <Button className="fitness-button">
             <Dumbbell className="mr-2 h-4 w-4" />
-            Create Custom Workout
+            {t('workouts.custom')}
           </Button>
         </div>
         
@@ -54,7 +55,7 @@ const Workouts = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
-                placeholder="Search workouts..."
+                placeholder={t('workouts.search')}
                 className="pl-10 fitness-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -65,14 +66,14 @@ const Workouts = () => {
               <SelectTrigger className="fitness-input">
                 <div className="flex items-center">
                   <Filter size={18} className="mr-2 text-muted-foreground" />
-                  <span>{filterLevel === 'all' ? 'All Levels' : filterLevel}</span>
+                  <span>{filterLevel === 'all' ? t('workouts.allLevels') : t(`workouts.${filterLevel}`)}</span>
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
+                <SelectItem value="all">{t('workouts.allLevels')}</SelectItem>
+                <SelectItem value="beginner">{t('workouts.beginner')}</SelectItem>
+                <SelectItem value="intermediate">{t('workouts.intermediate')}</SelectItem>
+                <SelectItem value="advanced">{t('workouts.advanced')}</SelectItem>
               </SelectContent>
             </Select>
             
@@ -80,15 +81,15 @@ const Workouts = () => {
               <SelectTrigger className="fitness-input">
                 <div className="flex items-center">
                   <Filter size={18} className="mr-2 text-muted-foreground" />
-                  <span>{filterCategory === 'all' ? 'All Categories' : filterCategory}</span>
+                  <span>{filterCategory === 'all' ? t('workouts.allCategories') : t(`workouts.${filterCategory}`)}</span>
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="hiit">HIIT</SelectItem>
-                <SelectItem value="strength">Strength</SelectItem>
-                <SelectItem value="cardio">Cardio</SelectItem>
-                <SelectItem value="yoga">Yoga</SelectItem>
+                <SelectItem value="all">{t('workouts.allCategories')}</SelectItem>
+                <SelectItem value="hiit">{t('workouts.hiit')}</SelectItem>
+                <SelectItem value="strength">{t('workouts.strength')}</SelectItem>
+                <SelectItem value="cardio">{t('workouts.cardio')}</SelectItem>
+                <SelectItem value="yoga">{t('workouts.yoga')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -114,9 +115,9 @@ const Workouts = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-destructive mb-4">Error loading workouts. Please try again later.</p>
+            <p className="text-destructive mb-4">{t('workouts.error')}</p>
             <Button variant="outline" onClick={() => window.location.reload()}>
-              Retry
+              {t('workouts.retry')}
             </Button>
           </div>
         ) : filteredWorkouts.length > 0 ? (
@@ -127,7 +128,7 @@ const Workouts = () => {
           </div>
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground mb-2">No workouts found matching your criteria</p>
+            <p className="text-muted-foreground mb-2">{t('workouts.noResults')}</p>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -136,13 +137,11 @@ const Workouts = () => {
                 setFilterCategory('all');
               }}
             >
-              Clear Filters
+              {t('workouts.clearFilters')}
             </Button>
           </div>
         )}
       </main>
-      
-      <FitBot />
     </div>
   );
 };

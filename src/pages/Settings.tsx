@@ -1,362 +1,254 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useColorTheme } from '@/contexts/ColorThemeContext';
 import { useLanguage, languages } from '@/contexts/LanguageContext';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { Moon, Sun, Bell, Globe, Lock, LogOut, Palette } from 'lucide-react';
-import { logAnalyticsEvent } from '@/utils/analytics';
-
-const passwordSchema = z.object({
-  currentPassword: z.string().min(6, {
-    message: 'Current password must be at least 6 characters.',
-  }),
-  newPassword: z.string().min(6, {
-    message: 'New password must be at least 6 characters.',
-  }),
-  confirmPassword: z.string().min(6, {
-    message: 'Confirm password must be at least 6 characters.',
-  }),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
-type PasswordFormData = z.infer<typeof passwordSchema>;
 
 const Settings = () => {
-  const navigate = useNavigate();
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, updatePassword } = useAuth();
   const { theme, setTheme } = useTheme();
   const { themeColor, setThemeColor } = useColorTheme();
   const { language, setLanguage, t } = useLanguage();
   
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
+  
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [inAppAlerts, setInAppAlerts] = useState(true);
-  
-  const form = useForm<PasswordFormData>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    },
-  });
-  
-  const handleChangePassword = (data: PasswordFormData) => {
-    // In a real app, you would call an API here
-    console.log('Password change requested:', data);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Log to Firebase Analytics
-    logAnalyticsEvent('password_change_attempt', {
-      success: true,
-    });
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
+      return;
+    }
     
-    toast.success('Password changed successfully!');
-    form.reset();
-  };
-  
-  const handleToggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
+    if (newPassword.length < 6) {
+      toast.error("Password should be at least 6 characters");
+      return;
+    }
     
-    // Log to Firebase Analytics
-    logAnalyticsEvent('theme_change', {
-      theme: newTheme,
-    });
-  };
-  
-  const handleThemeColorChange = (color: "gold" | "red" | "blue" | "green") => {
-    setThemeColor(color);
-    
-    // Log to Firebase Analytics
-    logAnalyticsEvent('theme_color_change', {
-      color: color,
-    });
-    
-    toast.success(`Theme color changed to ${color}!`);
-  };
-  
-  const handleNotificationChange = (type: string, value: boolean) => {
-    if (type === 'email') setEmailNotifications(value);
-    if (type === 'push') setPushNotifications(value);
-    if (type === 'inApp') setInAppAlerts(value);
-    
-    // Log to Firebase Analytics
-    logAnalyticsEvent('notification_preference_change', {
-      type,
-      enabled: value,
-    });
-  };
-  
-  const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-    
-    // Log to Firebase Analytics
-    logAnalyticsEvent('language_change', {
-      language: value,
-    });
-    
-    toast.success(`Language changed to ${languages.find(lang => lang.value === value)?.label}!`);
-  };
-  
-  const handleSignOut = async () => {
+    setIsPasswordUpdating(true);
     try {
-      await signOut();
-      navigate("/login");
-    } catch (error: any) {
-      toast.error(`Failed to sign out: ${error.message}`);
+      // This is just demo functionality - in production you'd verify current password first
+      await updatePassword(newPassword);
+      toast.success("Password updated successfully");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      toast.error("Failed to update password");
+      console.error(error);
+    } finally {
+      setIsPasswordUpdating(false);
     }
   };
-  
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">{t('settings.title')}</h1>
+    <div className="container max-w-4xl py-8 px-4 md:px-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Change Password */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Lock className="mr-2 h-5 w-5 text-primary" /> 
-              {t('settings.password')}
-            </CardTitle>
-            <CardDescription>Update your account password</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleChangePassword)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('settings.currentPassword')}</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+      <Tabs defaultValue="appearance" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="appearance">{t('settings.appearance')}</TabsTrigger>
+          <TabsTrigger value="notifications">{t('settings.notification')}</TabsTrigger>
+          <TabsTrigger value="security">{t('settings.password')}</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.appearance')}</CardTitle>
+              <CardDescription>Customize how FitGenius looks</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="dark-mode">{t('settings.darkMode')}</Label>
+                  <Switch 
+                    id="dark-mode" 
+                    checked={theme === 'dark'}
+                    onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  />
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <Label>{t('settings.language')}</Label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <Label>{t('settings.themeColors')}</Label>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant={themeColor === 'gold' ? 'default' : 'outline'} 
+                      onClick={() => setThemeColor('gold')}
+                      className="bg-gold text-white hover:bg-gold-dark"
+                    >
+                      {t('settings.colorGold')}
+                    </Button>
+                    <Button 
+                      variant={themeColor === 'red' ? 'default' : 'outline'} 
+                      onClick={() => setThemeColor('red')}
+                      className="bg-red-500 text-white hover:bg-red-600"
+                    >
+                      {t('settings.colorRed')}
+                    </Button>
+                    <Button 
+                      variant={themeColor === 'blue' ? 'default' : 'outline'} 
+                      onClick={() => setThemeColor('blue')}
+                      className="bg-blue-500 text-white hover:bg-blue-600"
+                    >
+                      {t('settings.colorBlue')}
+                    </Button>
+                    <Button 
+                      variant={themeColor === 'green' ? 'default' : 'outline'} 
+                      onClick={() => setThemeColor('green')}
+                      className="bg-green-500 text-white hover:bg-green-600"
+                    >
+                      {t('settings.colorGreen')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.notification')}</CardTitle>
+              <CardDescription>Configure how you receive notifications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications">{t('settings.email')}</Label>
+                  <p className="text-sm text-muted-foreground">Receive workout reminders and updates via email</p>
+                </div>
+                <Switch 
+                  id="email-notifications" 
+                  checked={emailNotifications}
+                  onCheckedChange={setEmailNotifications}
                 />
-                <FormField
-                  control={form.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('settings.newPassword')}</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="push-notifications">{t('settings.push')}</Label>
+                  <p className="text-sm text-muted-foreground">Receive push notifications on your device</p>
+                </div>
+                <Switch 
+                  id="push-notifications" 
+                  checked={pushNotifications}
+                  onCheckedChange={setPushNotifications}
                 />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('settings.confirmPassword')}</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="in-app-alerts">{t('settings.inApp')}</Label>
+                  <p className="text-sm text-muted-foreground">Receive alerts while using the app</p>
+                </div>
+                <Switch 
+                  id="in-app-alerts" 
+                  checked={inAppAlerts}
+                  onCheckedChange={setInAppAlerts}
                 />
-                <Button type="submit">{t('settings.update')}</Button>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => toast.success("Notification settings saved")}>Save Changes</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.password')}</CardTitle>
+              <CardDescription>Update your password to keep your account secure</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">{t('settings.currentPassword')}</Label>
+                  <Input 
+                    id="current-password" 
+                    type="password" 
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">{t('settings.newPassword')}</Label>
+                  <Input 
+                    id="new-password" 
+                    type="password" 
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">{t('settings.confirmPassword')}</Label>
+                  <Input 
+                    id="confirm-password" 
+                    type="password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <Button type="submit" disabled={isPasswordUpdating}>
+                  {isPasswordUpdating ? "Updating..." : t('settings.update')}
+                </Button>
               </form>
-            </Form>
-          </CardContent>
-        </Card>
-        
-        {/* Theme Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              {theme === 'dark' ? (
-                <Moon className="mr-2 h-5 w-5 text-primary" />
-              ) : (
-                <Sun className="mr-2 h-5 w-5 text-primary" />
-              )}
-              {t('settings.appearance')}
-            </CardTitle>
-            <CardDescription>Customize the look and feel of the application</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="theme-mode">{t('settings.darkMode')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  Switch between light and dark themes
-                </p>
-              </div>
-              <Switch
-                id="theme-mode"
-                checked={theme === 'dark'}
-                onCheckedChange={handleToggleTheme}
-              />
-            </div>
-            
-            <div>
-              <Label className="block mb-2">Theme Color</Label>
-              <div className="flex space-x-3">
-                <button 
-                  onClick={() => handleThemeColorChange('gold')}
-                  className={`w-10 h-10 rounded-full bg-[#D4AF37] flex items-center justify-center border-2 transition-all ${themeColor === 'gold' ? 'border-black dark:border-white scale-110' : 'border-transparent opacity-70'}`}
-                  aria-label="Gold theme"
-                >
-                  {themeColor === 'gold' && <Palette className="h-5 w-5 text-white" />}
-                </button>
-                <button 
-                  onClick={() => handleThemeColorChange('red')}
-                  className={`w-10 h-10 rounded-full bg-red-500 flex items-center justify-center border-2 transition-all ${themeColor === 'red' ? 'border-black dark:border-white scale-110' : 'border-transparent opacity-70'}`}
-                  aria-label="Red theme"
-                >
-                  {themeColor === 'red' && <Palette className="h-5 w-5 text-white" />}
-                </button>
-                <button 
-                  onClick={() => handleThemeColorChange('blue')}
-                  className={`w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center border-2 transition-all ${themeColor === 'blue' ? 'border-black dark:border-white scale-110' : 'border-transparent opacity-70'}`}
-                  aria-label="Blue theme"
-                >
-                  {themeColor === 'blue' && <Palette className="h-5 w-5 text-white" />}
-                </button>
-                <button 
-                  onClick={() => handleThemeColorChange('green')}
-                  className={`w-10 h-10 rounded-full bg-green-600 flex items-center justify-center border-2 transition-all ${themeColor === 'green' ? 'border-black dark:border-white scale-110' : 'border-transparent opacity-70'}`}
-                  aria-label="Green theme"
-                >
-                  {themeColor === 'green' && <Palette className="h-5 w-5 text-white" />}
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Notification Preferences */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="mr-2 h-5 w-5 text-primary" />
-              {t('settings.notification')}
-            </CardTitle>
-            <CardDescription>Manage how you receive notifications</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="email-notifications">{t('settings.email')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive notifications via email
-                </p>
-              </div>
-              <Switch
-                id="email-notifications"
-                checked={emailNotifications}
-                onCheckedChange={(checked) => handleNotificationChange('email', checked)}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="push-notifications">{t('settings.push')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive notifications on your device
-                </p>
-              </div>
-              <Switch
-                id="push-notifications"
-                checked={pushNotifications}
-                onCheckedChange={(checked) => handleNotificationChange('push', checked)}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="in-app-alerts">{t('settings.inApp')}</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive notifications within the app
-                </p>
-              </div>
-              <Switch
-                id="in-app-alerts"
-                checked={inAppAlerts}
-                onCheckedChange={(checked) => handleNotificationChange('inApp', checked)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Language Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Globe className="mr-2 h-5 w-5 text-primary" />
-              {t('settings.language')}
-            </CardTitle>
-            <CardDescription>Choose your preferred language</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="language">{t('settings.language')}</Label>
-              <Select value={language} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Sign Out Button */}
-      <div className="mt-8">
-        <Button variant="destructive" onClick={handleSignOut} className="flex items-center">
-          <LogOut className="mr-2 h-4 w-4" />
-          {t('settings.signOut')}
-        </Button>
-      </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  // This would typically show a confirmation dialog
+                  toast.error("This is a demo feature");
+                }}
+              >
+                {t('settings.signOut')}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -19,6 +19,7 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useAuth } from './contexts/AuthContext';
 import { useOnboarding } from './contexts/OnboardingContext';
 import { Layout } from './components/Layout';
+import FitBot from './components/FitBot';
 
 function App() {
   const location = useLocation();
@@ -78,8 +79,12 @@ function App() {
     );
   };
   
+  // Show FitBot if user is authenticated
+  const shouldShowFitBot = !!currentUser && !showOnboarding;
+  
   return (
     <AnimatePresence mode="wait">
+      {shouldShowFitBot && <FitBot />}
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={renderHomePage()} />
         <Route path="/login" element={<Login />} />
