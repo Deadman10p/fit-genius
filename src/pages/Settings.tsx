@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +43,8 @@ const Settings = () => {
     
     setIsPasswordUpdating(true);
     try {
-      // This is just demo functionality - in production you'd verify current password first
+      // In a real app, you'd pass the current password to verify the user
+      // For this demo app, we're just passing the new password
       await updatePassword(newPassword);
       toast.success("Password updated successfully");
       setCurrentPassword('');

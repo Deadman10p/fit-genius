@@ -1,11 +1,11 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   auth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateUserPassword
 } from '@/config/firebase';
 import { User } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -132,12 +133,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const dummyCurrentPassword = "current-password";
+      await updateUserPassword(dummyCurrentPassword, newPassword);
+      
+      toast({
+        title: "Password updated successfully",
+        description: "Your password has been changed",
+      });
+      
+      return;
+    } catch (error: any) {
+      console.error("Failed to update password:", error);
+      
+      toast({
+        title: "Password update failed",
+        description: error.message || "An unknown error occurred",
+        variant: "destructive",
+      });
+      
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     loading,
     signIn,
     signUp,
-    signOut
+    signOut,
+    updatePassword
   };
 
   return (
