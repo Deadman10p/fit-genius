@@ -8,6 +8,69 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 const HeightWeightStep = () => {
   const { onboardingData, updateOnboardingData } = useOnboarding();
 
+  // Ensure default values are set
+  React.useEffect(() => {
+    if (!onboardingData.heightUnit) {
+      updateOnboardingData({ heightUnit: 'cm' });
+    }
+    if (!onboardingData.weightUnit) {
+      updateOnboardingData({ weightUnit: 'kg' });
+    }
+  }, [onboardingData.heightUnit, onboardingData.weightUnit, updateOnboardingData]);
+
+  // Handle unit conversion when switching units
+  const handleHeightUnitChange = (value: string) => {
+    const newUnit = value as 'cm' | 'in';
+    
+    if (onboardingData.height && onboardingData.heightUnit !== newUnit) {
+      let convertedHeight;
+      if (newUnit === 'cm' && onboardingData.heightUnit === 'in') {
+        // Convert inches to cm
+        convertedHeight = (parseFloat(onboardingData.height) * 2.54).toFixed(1);
+      } else if (newUnit === 'in' && onboardingData.heightUnit === 'cm') {
+        // Convert cm to inches
+        convertedHeight = (parseFloat(onboardingData.height) / 2.54).toFixed(1);
+      }
+      
+      if (convertedHeight) {
+        updateOnboardingData({ 
+          height: convertedHeight,
+          heightUnit: newUnit 
+        });
+      } else {
+        updateOnboardingData({ heightUnit: newUnit });
+      }
+    } else {
+      updateOnboardingData({ heightUnit: newUnit });
+    }
+  };
+
+  const handleWeightUnitChange = (value: string) => {
+    const newUnit = value as 'kg' | 'lbs';
+    
+    if (onboardingData.weight && onboardingData.weightUnit !== newUnit) {
+      let convertedWeight;
+      if (newUnit === 'kg' && onboardingData.weightUnit === 'lbs') {
+        // Convert lbs to kg
+        convertedWeight = (parseFloat(onboardingData.weight) * 0.453592).toFixed(1);
+      } else if (newUnit === 'lbs' && onboardingData.weightUnit === 'kg') {
+        // Convert kg to lbs
+        convertedWeight = (parseFloat(onboardingData.weight) / 0.453592).toFixed(1);
+      }
+      
+      if (convertedWeight) {
+        updateOnboardingData({ 
+          weight: convertedWeight,
+          weightUnit: newUnit 
+        });
+      } else {
+        updateOnboardingData({ weightUnit: newUnit });
+      }
+    } else {
+      updateOnboardingData({ weightUnit: newUnit });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center mb-4">
@@ -30,8 +93,8 @@ const HeightWeightStep = () => {
         </div>
         <div>
           <Select
-            value={onboardingData.heightUnit}
-            onValueChange={(value) => updateOnboardingData({ heightUnit: value as 'cm' | 'in' })}
+            value={onboardingData.heightUnit || 'cm'}
+            onValueChange={handleHeightUnitChange}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Unit" />
@@ -58,8 +121,8 @@ const HeightWeightStep = () => {
         </div>
         <div>
           <Select
-            value={onboardingData.weightUnit}
-            onValueChange={(value) => updateOnboardingData({ weightUnit: value as 'kg' | 'lbs' })}
+            value={onboardingData.weightUnit || 'kg'}
+            onValueChange={handleWeightUnitChange}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Unit" />
