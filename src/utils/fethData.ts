@@ -1,16 +1,16 @@
-// Import the knowledge data from the knowledge.js file
-import knowledge from '../data/knowledge';
+// Import the FAQ data from knowledge.js
+import { faq } from '../data/knowledge';
 
 /**
- * Fetch stored knowledge data
- * @returns The knowledge data from knowledge.js
+ * Fetch the FAQ data from knowledge.js
+ * @returns The FAQ data array
  */
-export function fetchStoredData(): any {
+export function fetchKnowledge(): Array<{ question: string; answer: string; tags: string[]; references?: string[] }> {
     try {
-        // Return the imported knowledge data
-        return knowledge;
+        // Return the imported FAQ data
+        return faq;
     } catch (error) {
-        console.error("Error fetching stored data:", error);
+        console.error("Error fetching knowledge data:", error);
         throw error;
     }
 }
