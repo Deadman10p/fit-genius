@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -18,15 +17,15 @@ type Message = {
 };
 
 const FitBot = () => {
-  const { onboardingData } = useOnboarding();
-  const { themeColor } = useColorTheme();
-  const { t } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const { onboardingData } = useOnboarding(); // Access onboarding context
+  const { themeColor } = useColorTheme(); // Access theme color context
+  const { t } = useLanguage(); // Access language context for translations
+  const { toast } = useToast(); // Access toast notifications
+  const [messages, setMessages] = useState<Message[]>([]); // Message history
+  const [input, setInput] = useState(''); // User input
+  const [isOpen, setIsOpen] = useState(false); // Chat toggle state
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Reference for scrolling to the latest message
 
   // Generate personalized welcome message using user's name
   useEffect(() => {
@@ -35,14 +34,14 @@ const FitBot = () => {
         id: 1,
         text: `${t('fitbot.welcome')}`,
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       }]);
     } else {
       setMessages([{
         id: 1,
         text: t('fitbot.welcome'),
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       }]);
     }
   }, [onboardingData.name, t]);
@@ -57,42 +56,41 @@ const FitBot = () => {
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-    
+
     // Add user message
     const userMessage: Message = {
       id: messages.length + 1,
       text: input,
       isBot: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    
+
     try {
-      // Get response from our local knowledge base
-      const botResponse = findRelevantAnswer(input, onboardingData);
-      
+      // Use the findRelevantAnswer function to get a response
+      const botResponse = await findRelevantAnswer(input, onboardingData);
+
       const botReply: Message = {
         id: messages.length + 2,
         text: botResponse,
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
+
       // Add a small delay to simulate "thinking"
       setTimeout(() => {
         setMessages(prev => [...prev, botReply]);
         setIsLoading(false);
       }, 600);
-      
     } catch (error) {
       console.error('Error in chat:', error);
       toast({
-        title: "Error",
+        title: 'Error',
         description: t('fitbot.error'),
-        variant: "destructive",
+        variant: 'destructive',
       });
       setIsLoading(false);
     }
@@ -100,10 +98,10 @@ const FitBot = () => {
 
   const renderMessageBubble = (message: Message) => {
     const isBot = message.isBot;
-    
+
     return (
-      <div 
-        key={message.id} 
+      <div
+        key={message.id}
         className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-3`}
       >
         {isBot && (
@@ -111,10 +109,10 @@ const FitBot = () => {
             <Brain size={16} className={`text-${themeColor}`} />
           </div>
         )}
-        <div 
+        <div
           className={`max-w-[80%] px-4 py-2 rounded-xl ${
-            isBot 
-              ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' 
+            isBot
+              ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
               : `bg-${themeColor} text-white dark:bg-${themeColor}/90`
           }`}
         >
@@ -160,7 +158,7 @@ const FitBot = () => {
           <Brain className="h-6 w-6 text-white" />
         )}
       </button>
-      
+
       {/* Chat Window */}
       {isOpen && (
         <Card className="fixed bottom-20 right-4 w-80 md:w-96 shadow-xl z-40 animate-fade-in-up">
@@ -175,7 +173,7 @@ const FitBot = () => {
               <Award className={`h-4 w-4 text-${themeColor} mr-1`} />
               <span className="text-xs text-gray-500 dark:text-gray-400">{t('fitbot.assistant')}</span>
             </div>
-            
+
             <div className="space-y-2">
               {messages.map(renderMessageBubble)}
               <div ref={messagesEndRef} />
@@ -191,9 +189,9 @@ const FitBot = () => {
                 className="fitness-input dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
                 disabled={isLoading}
               />
-              <Button 
-                onClick={handleSendMessage} 
-                size="icon" 
+              <Button
+                onClick={handleSendMessage}
+                size="icon"
                 disabled={!input.trim() || isLoading}
                 className={`bg-${themeColor} hover:bg-${themeColor}-dark`}
               >

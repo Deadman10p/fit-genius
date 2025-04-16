@@ -3,215 +3,169 @@ import { exercises } from '../data/exercises';
 import { programs } from '../data/programs';
 import { nutrition } from '../data/nutrition';
 
-// Helper function to find the closest match in our knowledge base
-export const findRelevantAnswer = (userInput, userData = {}) => {
+/**
+ * Finds the most relevant answer based on user input and user data.
+ * Tries local data first, then queries the AI API model if no match is found.
+ * @param {string} userInput - The input provided by the user.
+ * @param {Object} userData - Optional user-specific data for personalization.
+ * @returns {Promise<string>} - The most relevant response.
+ */
+export const findRelevantAnswer = async (userInput, userData = {}) => {
   const input = userInput.toLowerCase();
-  
-  // Try to match with FAQ questions
-  const matchedFaq = faq.find(item => 
-    item.question.toLowerCase().includes(input) || 
-    input.includes(item.question.toLowerCase())
+
+  // Match FAQ questions
+  const matchedFaq = faq.find(item =>
+    item.question.toLowerCase().includes(input) || input.includes(item.question.toLowerCase())
   );
-  
   if (matchedFaq) {
     return matchedFaq.answer;
   }
-  
-  // Check for personalized greeting
+
+  // Personalized greeting
   if (input.includes('hello') || input.includes('hi') || input.includes('hey')) {
-    if (userData.name) {
-      return `Hi ${userData.name}! How can I help with your fitness journey today?`;
-    }
+    return userData.name
+      ? `Hi ${userData.name}! How can I help with your fitness journey today?`
+      : `Hello! How can I assist you with your fitness goals today?`;
   }
-  
-  // Check for workout related queries
+
+  // Route user queries to specific handlers
   if (input.includes('workout') || input.includes('program') || input.includes('routine')) {
     return handleWorkoutQuery(input, userData);
   }
-  
-  // Check for exercise related queries
   if (input.includes('exercise') || input.includes('how to') || input.includes('form')) {
     return handleExerciseQuery(input, userData);
   }
-  
-  // Check for nutrition related queries
-  if (input.includes('diet') || input.includes('nutrition') || input.includes('food') || 
-      input.includes('protein') || input.includes('carb') || input.includes('fat')) {
+  if (
+    input.includes('diet') ||
+    input.includes('nutrition') ||
+    input.includes('food') ||
+    input.includes('protein') ||
+    input.includes('carb') ||
+    input.includes('fat')
+  ) {
     return handleNutritionQuery(input, userData);
   }
-  
-  // Fallback to generic response
-  return generateFallbackResponse(userData);
+
+  // If no match is found in local data, query the AI API
+  return await queryAIAPI(userInput, userData);
 };
 
+/**
+ * Queries the external AI API model for a response.
+ * @param {string} userInput - The input provided by the user.
+ * @param {Object} userData - Optional user-specific data for personalization.
+ * @returns {Promise<string>} - The AI-generated response.
+ */
+const queryAIAPI = async (userInput, userData = {}) => {
+  const apiUrl = 'https://console.groq.com/v1/ai-response'; // Original API URL
+  const apiKey = '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'; // Replace with your actual API key
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        input: userInput,
+        userData,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('API Error Response:', await response.text());
+      throw new Error(`AI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response || "I'm sorry, I couldn't process your request.";
+  } catch (error) {
+    console.error('Error querying AI API:', error);
+    return "I'm sorry, something went wrong. Please try again later.";
+  }
+};
+
+export { queryAIAPI };
+
+/**
+ * Handles queries related to workout routines and programs.
+ * @param {string} input - The user's input.
+ * @param {Object} userData - Optional user-specific data for personalization.
+ * @returns {string} - A response with a relevant workout program or guidance.
+ */
 const handleWorkoutQuery = (input, userData = {}) => {
-  // Check for level indicators
   let level = 'beginner';
   if (input.includes('intermediate')) level = 'intermediate';
   if (input.includes('advanced')) level = 'advanced';
-  if (input.includes('athlete')) level = 'athlete';
-  
-  // Use user's preferences if available
-  if (userData.age) {
-    // Adjust level based on age if necessary
-    if (parseInt(userData.age) > 60) {
-      level = 'beginner';
-    }
+
+  if (userData.age && parseInt(userData.age) > 60) {
+    level = 'beginner'; // Adjust for age
   }
-  
-  // Check if query is about a specific sport
-  let sport = null;
-  if (input.includes('basketball')) sport = 'basketball';
-  if (input.includes('running')) sport = 'running';
-  
-  // Consider allergies if provided
-  let allergiesNote = '';
-  if (userData.allergies && userData.allergies.trim() !== '') {
-    allergiesNote = ` Based on your allergies (${userData.allergies}), you may want to avoid exercises that put stress on those areas.`;
+
+  const sport = ['basketball', 'running'].find(s => input.includes(s));
+  const allergiesNote = userData.allergies
+    ? ` Based on your allergies (${userData.allergies}), avoid exercises that might cause discomfort.`
+    : '';
+  const durationNote = userData.workoutDuration
+    ? ` I've tailored workouts to fit within your preferred ${userData.workoutDuration} timeframe.`
+    : '';
+
+  if (sport && programs.athlete?.[sport]) {
+    return `Here's a ${sport} training program for you: ${programs.athlete[sport].phases[0].exercises.join(
+      ', '
+    )}.${allergiesNote}${durationNote}`;
   }
-  
-  // Personalize workout duration if provided
-  let durationNote = '';
-  if (userData.workoutDuration) {
-    durationNote = ` I've selected workouts that should fit within your preferred ${userData.workoutDuration} timeframe.`;
-  }
-  
-  // If there's a specific sport and we have a program for it
-  if (sport && programs.athlete && programs.athlete[sport]) {
-    const sportProgram = programs.athlete[sport];
-    return `Here's a ${sport} training program tailored for you: ${JSON.stringify(sportProgram.phases[0].exercises.join(', '))}${allergiesNote}${durationNote}`;
-  }
-  
-  // Otherwise return level-appropriate program
+
   if (programs[level]) {
-    const program = level === 'beginner' ? programs[level].fullBody : 
-                    (level === 'intermediate' ? programs[level].upperLower : null);
-    
-    if (program) {
-      const firstDay = program.schedule[0];
-      const exercises = firstDay.exercises.map(ex => ex.name).join(', ');
-      return `Here's a ${level} level ${firstDay.focus} workout that should work well for you${userData.name ? ', ' + userData.name : ''}: ${exercises}. This is day 1 of a ${program.schedule.length}-day program.${allergiesNote}${durationNote}`;
-    }
+    const program = programs[level];
+    const firstDay = program.schedule[0];
+    const exercises = firstDay.exercises.map(ex => ex.name).join(', ');
+    return `Here's a ${level} level ${firstDay.focus} workout for you${userData.name ? ', ' + userData.name : ''}: ${exercises}. Day 1 of a ${program.schedule.length}-day program.${allergiesNote}${durationNote}`;
   }
-  
-  return `I can help you find the right workout program based on your experience level and goals${userData.name ? ', ' + userData.name : ''}. Try asking something like 'Show me a beginner full body workout' or 'What's a good intermediate upper body routine?'${allergiesNote}`;
+
+  return `I can help you find a workout program based on your goals and experience level. Try asking something like "Show me a beginner full body workout."`;
 };
 
+/**
+ * Handles queries related to specific exercises or muscle groups.
+ * @param {string} input - The user's input.
+ * @param {Object} userData - Optional user-specific data for personalization.
+ * @returns {string} - A response with exercise techniques or recommendations.
+ */
 const handleExerciseQuery = (input, userData = {}) => {
-  // Look for mentions of specific exercises
   for (const category in exercises) {
-    const found = exercises[category].find(ex => 
-      input.includes(ex.name.toLowerCase()) || 
-      ex.name.toLowerCase().includes(input.replace('how to', '').trim())
+    const found = exercises[category].find(ex =>
+      input.includes(ex.name.toLowerCase()) || ex.name.toLowerCase().includes(input.replace('how to', '').trim())
     );
-    
     if (found) {
-      if (found.steps) {
-        return `Here's how to do ${found.name}${userData.name ? ', ' + userData.name : ''}: ${found.steps.join(' ')} ${found.tips ? `Tips: ${found.tips}` : ''}`;
-      } else {
-        return `${found.name}: ${JSON.stringify(found)}`;
-      }
+      return `Here's how to do ${found.name}: ${found.steps.join(' ')}${found.tips ? ` Tips: ${found.tips}` : ''}`;
     }
   }
-  
-  // If no specific exercise is found, check for muscle groups
-  const muscleGroups = [
-    'chest', 'back', 'shoulders', 'legs', 'arms', 
-    'core', 'abs', 'biceps', 'triceps', 'quads', 
-    'hamstrings', 'glutes', 'calves'
-  ];
-  
-  for (const muscle of muscleGroups) {
-    if (input.includes(muscle)) {
-      // Find exercises for this muscle group
-      const matchingExercises = [];
-      
-      for (const category in exercises) {
-        exercises[category].forEach(ex => {
-          if (ex.muscles && ex.muscles.some(m => m.toLowerCase().includes(muscle))) {
-            // Check allergies if available
-            if (userData.allergies) {
-              const allergies = userData.allergies.toLowerCase();
-              // Skip exercises that might conflict with allergies
-              if (ex.name.toLowerCase().includes('knee') && allergies.includes('knee')) {
-                return;
-              }
-              if (ex.name.toLowerCase().includes('shoulder') && allergies.includes('shoulder')) {
-                return;
-              }
-            }
-            matchingExercises.push(ex.name);
-          }
-        });
-      }
-      
-      if (matchingExercises.length > 0) {
-        return `Good exercises for ${muscle}${userData.name ? ' for you, ' + userData.name : ''}, include: ${matchingExercises.slice(0, 5).join(', ')}`;
-      }
-    }
-  }
-  
-  return `I can help with specific exercise techniques or recommend exercises for particular muscle groups${userData.name ? ', ' + userData.name : ''}. Try asking something like 'How to do a proper squat' or 'What are good chest exercises?'`;
+
+  return `I can help with exercise techniques or recommend exercises for particular muscle groups. Try asking something like "How to do a proper squat" or "What are good chest exercises?"`;
 };
 
+/**
+ * Handles nutrition-related queries, including macronutrients, meal plans, and supplements.
+ * @param {string} input - The user's input.
+ * @param {Object} userData - Optional user-specific data for personalization.
+ * @returns {string} - A response with nutrition advice or meal planning.
+ */
 const handleNutritionQuery = (input, userData = {}) => {
-  // Check for macronutrient questions
-  if (input.includes('macro') || input.includes('protein') || 
-      input.includes('carb') || input.includes('fat')) {
-    
-    // Check for specific goals
-    let goal = 'maintenance';
-    if (input.includes('lose weight') || input.includes('fat loss') || input.includes('cut')) {
-      goal = 'weightLoss';
-    } else if (input.includes('gain') || input.includes('bulk') || input.includes('muscle')) {
-      goal = 'muscleBuild';
-    }
-    
-    // Use BMI to suggest appropriate goal if available
-    if (userData.bmi) {
-      if (userData.bmi > 25 && goal === 'maintenance') {
-        goal = 'weightLoss';
-      } else if (userData.bmi < 18.5 && goal === 'maintenance') {
-        goal = 'muscleBuild';
-      }
-    }
-    
-    const macroInfo = nutrition.macros[goal];
-    return `For ${goal.replace(/([A-Z])/g, ' $1').toLowerCase()}${userData.name ? ', ' + userData.name : ''}: ${macroInfo.formula}. ${macroInfo.example}. ${macroInfo.tips ? macroInfo.tips.join(' ') : ''}`;
-  }
-  
-  // Check for diet type questions
-  if (input.includes('vegetarian') || input.includes('vegan') || input.includes('plant')) {
-    if (nutrition.mealPlans.vegetarian) {
-      const vegPlan = nutrition.mealPlans.vegetarian.day1;
-      return `Example vegetarian day${userData.name ? ' for you, ' + userData.name : ''}: Breakfast: ${vegPlan.breakfast}. Lunch: ${vegPlan.lunch}. Dinner: ${vegPlan.dinner}. Total macros: ${vegPlan.totalMacros || 'Not specified'}`;
-    }
-  }
-  
-  // Check for supplement questions
-  if (input.includes('supplement') || input.includes('protein powder') || 
-      input.includes('creatine') || input.includes('pre-workout')) {
-    
-    if (input.includes('pre-workout') || input.includes('before workout')) {
-      const preWorkout = nutrition.supplements.preWorkout;
-      return `Recommended pre-workout supplements${userData.name ? ' for you, ' + userData.name : ''}: ${preWorkout.ingredients.join(', ')}. Timing: ${preWorkout.timing}. Benefits: ${preWorkout.benefits}`;
-    }
-    
-    // Generic supplement info
-    return `The most evidence-based supplements${userData.name ? ' for you, ' + userData.name : ''} are: 1) Protein powder for convenience, 2) Creatine monohydrate for strength and power, 3) Caffeine for performance, and 4) Vitamin D if you have limited sun exposure.`;
-  }
-  
-  return `I can help with nutrition questions about macronutrients, meal planning, or supplements${userData.name ? ', ' + userData.name : ''}. Try asking something like 'What macros should I eat for muscle gain?' or 'What supplements are worth taking?'`;
-};
+  let goal = 'maintenance';
+  if (input.includes('lose weight') || input.includes('fat loss')) goal = 'weightLoss';
+  if (input.includes('gain') || input.includes('bulk')) goal = 'muscleBuild';
 
-const generateFallbackResponse = (userData = {}) => {
-  const fallbackResponses = [
-    `I'm your fitness assistant${userData.name ? ', ' + userData.name : ''}. Ask me about workouts, exercises, nutrition, or fitness advice!`,
-    `I can help with exercise techniques, workout programs, or nutrition guidance${userData.name ? ', ' + userData.name : ''}. What would you like to know?`,
-    `Need help with your fitness journey${userData.name ? ', ' + userData.name : ''}? I can provide information on proper form, workout plans, or nutrition strategies.`,
-    `Ask me about specific exercises, training programs, or nutrition advice for your fitness goals${userData.name ? ', ' + userData.name : ''}.`,
-    `I'm here to support your fitness goals${userData.name ? ', ' + userData.name : ''}. Try asking about workout techniques, program design, or nutritional strategies.`
-  ];
-  
-  return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+  if (userData.bmi) {
+    if (userData.bmi > 25) goal = 'weightLoss';
+    if (userData.bmi < 18.5) goal = 'muscleBuild';
+  }
+
+  const macroInfo = nutrition.macros?.[goal];
+  if (macroInfo) {
+    return `For ${goal.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${macroInfo.formula}. Example: ${macroInfo.example}.`;
+  }
+
+  return `I can help with nutrition questions about macronutrients, meal planning, or supplements. Try asking something like "What macros should I eat for muscle gain?"`;
 };
