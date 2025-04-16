@@ -1,5 +1,6 @@
-const knowledge = require('../data/knowledge'); // Import stored data
+import { fetchKnowledge } from './fetchData';
 
+const knowledge = fetchKnowledge(); // Fetch the FAQ data
 const chatLog = document.getElementById('chat-log');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
