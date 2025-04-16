@@ -1,4 +1,4 @@
-const storedData = require('../data/storedData'); // Import the stored data
+const knowledge = require('../data/knowledge'); // Import stored data
 
 const chatLog = document.getElementById('chat-log');
 const userInput = document.getElementById('user-input');
@@ -20,7 +20,7 @@ async function sendMessage() {
         (userInput as HTMLInputElement).value = '';
 
         try {
-            // Use the imported stored data in the API request
+            // Include knowledge.js data in the API request
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
@@ -30,7 +30,7 @@ async function sendMessage() {
                 body: JSON.stringify({
                     model: "meta-llama/llama-4-scout-17b-16e-instruct",
                     messages: [
-                        { "role": "system", "content": "Use this data for context: " + JSON.stringify(storedData) },
+                        { "role": "system", "content": "Use this data for context: " + JSON.stringify(knowledge) },
                         { "role": "user", "content": userMessage }
                     ]
                 })
