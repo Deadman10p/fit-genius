@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -11,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 type Message = {
   id: number;
-  text: string;
+  text: string | string[];
   isBot: boolean;
   timestamp: Date;
 };
@@ -25,6 +26,7 @@ const FitBot = () => {
   const [input, setInput] = useState(''); // User input
   const [isOpen, setIsOpen] = useState(false); // Chat toggle state
   const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isThinking, setIsThinking] = useState(false); // Thinking state
   const messagesEndRef = useRef<HTMLDivElement>(null); // Reference for scrolling to the latest message
 
   // Generate personalized welcome message using user's name
@@ -68,6 +70,7 @@ const FitBot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setIsThinking(true);
 
     try {
       // Use the findRelevantAnswer function to get a response
@@ -84,6 +87,7 @@ const FitBot = () => {
       setTimeout(() => {
         setMessages(prev => [...prev, botReply]);
         setIsLoading(false);
+        setIsThinking(false);
       }, 600);
     } catch (error) {
       console.error('Error in chat:', error);
@@ -93,6 +97,7 @@ const FitBot = () => {
         variant: 'destructive',
       });
       setIsLoading(false);
+      setIsThinking(false);
     }
   };
 
@@ -100,8 +105,11 @@ const FitBot = () => {
     const isBot = message.isBot;
 
     return (
-      <div
+      <motion.div
         key={message.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-3`}
       >
         {isBot && (
@@ -116,7 +124,15 @@ const FitBot = () => {
               : `bg-${themeColor} text-white dark:bg-${themeColor}/90`
           }`}
         >
-          <p className="text-sm">{message.text}</p>
+          {Array.isArray(message.text) ? (
+            <ul>
+              {message.text.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>{message.text}</p>
+          )}
           <p className="text-xs opacity-70 mt-1">
             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
@@ -126,7 +142,7 @@ const FitBot = () => {
             <User size={16} className="text-gray-500" />
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -176,6 +192,23 @@ const FitBot = () => {
 
             <div className="space-y-2">
               {messages.map(renderMessageBubble)}
+              {isThinking && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex justify-start mb-3"
+                >
+                  <div className={`flex-shrink-0 h-8 w-8 rounded-full bg-${themeColor}/20 flex items-center justify-center mr-2`}>
+                    <Brain size={16} className={`text-${themeColor}`} />
+                  </div>
+                  <div
+                    className={`max-w-[80%] px-4 py-2 rounded-xl bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200`}
+                  >
+                    <p>...</p>
+                  </div>
+                </motion.div>
+              )}
               <div ref={messagesEndRef} />
             </div>
           </CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -83,7 +82,7 @@ function App() {
   const shouldShowFitBot = !!currentUser && !showOnboarding;
   
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="sync">
       {shouldShowFitBot && <FitBot />}
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={renderHomePage()} />
