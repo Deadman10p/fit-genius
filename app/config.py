@@ -29,8 +29,13 @@ SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 # ChromaDB
 CHROMADB_ENDPOINT = os.getenv("CHROMADB_ENDPOINT", "http://localhost:8000")
 
-# Lemon Squeezy
+# Lemon Squeezy (kept for future use)
 LEMON_SQUEEZY_API_KEY = os.getenv("LEMON_SQUEEZY_API_KEY")
+
+# Manual Payment Configuration
+PREMIUM_COST_UGX = 5000
+PAYMENT_RECIPIENT_NUMBER = "+256 XXX XXX XXX"
+PREMIUM_FEATURES = ["ai_chat"]
 
 # Firebase
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")

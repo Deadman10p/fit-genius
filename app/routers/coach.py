@@ -3,6 +3,7 @@ from app.models import CoachRequest, CoachResponse
 from app.services.auth_service import get_current_user
 from app.services.ai_service import ai_service
 from app.services.supabase_service import supabase_service
+from app.config import PREMIUM_COST_UGX, PAYMENT_RECIPIENT_NUMBER
 from datetime import datetime
 from typing import List
 import json
@@ -15,10 +16,19 @@ async def coach_chat(
     request: CoachRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Send message to coach (text chat)."""
+    """Send message to coach (text chat - premium only)."""
     profile = await supabase_service.get_user_profile(current_user['id'])
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Check premium status
+    subscription = profile.get("subscription", {})
+    is_premium = subscription.get("status") == "active" and subscription.get("plan") == "premium"
+    if not is_premium:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"AI chat is a premium feature. Send {PREMIUM_COST_UGX} UGX to {PAYMENT_RECIPIENT_NUMBER} to unlock premium access."
+        )
     
     # Build user context
     user_context = {

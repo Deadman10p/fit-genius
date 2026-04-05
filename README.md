@@ -7,7 +7,7 @@ A complete FastAPI backend for a personalized AI fitness and nutrition coaching 
 - **User Authentication**: Supabase JWT + Admin bcrypt authentication
 - **Gamification**: XP, levels, badges, challenges, and leaderboards
 - **Coach Service**: Encrypted text/voice coaching with Signal Protocol
-- **Payment Integration**: Lemon Squeezy subscription management
+- **Payment Integration**: Manual mobile money payments (Lemon Squeezy ready for future)
 - **Admin Dashboard**: Analytics, user management, feedback handling
 - **Push Notifications**: Firebase Cloud Messaging integration
 - **Gym Finder**: OpenStreetMap Overpass API integration
@@ -105,9 +105,16 @@ GEMMA4_CLOUD_ENDPOINT=your_cloud_endpoint
 
 # External Services
 CHROMADB_ENDPOINT=http://localhost:8000
-LEMON_SQUEEZY_API_KEY=your_lemon_squeezy_key
 FIREBASE_PROJECT_ID=your_firebase_project
 REDIS_URL=redis://localhost:6379
+
+# Payment Configuration
+PREMIUM_COST_UGX=5000
+PAYMENT_RECIPIENT_NUMBER=+256 XXX XXX XXX
+PREMIUM_FEATURES=ai_chat
+
+# Lemon Squeezy (optional - for future automated subscriptions)
+LEMON_SQUEEZY_API_KEY=your_lemon_squeezy_key
 
 # Admin
 ADMIN_PASSWORD_HASH=your_bcrypt_hash
@@ -193,9 +200,9 @@ app/
 - User feedback management with reply system
 
 ### Payments
-- Lemon Squeezy integration for subscriptions
-- Webhook handling for subscription events
-- Premium tier gating on features (voice coach, etc.)
+- Manual mobile money payment system (5000 UGX to unlock AI chat)
+- Lemon Squeezy integration kept for future automated subscriptions
+- Premium tier gating on AI chat feature
 
 ## API Authentication
 
@@ -226,7 +233,8 @@ pytest app/tests/
 1. **Database**: Migrate to production Supabase project
 2. **AI Models**: Deploy Ollama server or configure cloud endpoints
 3. **Authentication**: Configure Supabase security rules
-4. **Payment Webhooks**: Register Lemon Squeezy webhook URLs
+4. **Payment System**: Configure mobile money recipient number and premium pricing
+5. **Lemon Squeezy**: Optional - set up for future automated subscriptions
 5. **Firebase**: Set up Firebase project for push notifications
 6. **Security**: 
    - Use HTTPS in production

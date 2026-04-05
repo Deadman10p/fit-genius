@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.models import Subscription, PaymentWebhook
 from app.services.auth_service import get_current_user
 from app.services.supabase_service import supabase_service
+from app.config import PREMIUM_COST_UGX, PAYMENT_RECIPIENT_NUMBER, PREMIUM_FEATURES
 from datetime import datetime, timedelta
 from typing import Optional
 import json
@@ -31,10 +32,17 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
 async def subscribe_to_premium(
     current_user: dict = Depends(get_current_user)
 ):
-    """Initiate premium subscription via Lemon Squeezy."""
+    """Initiate premium subscription via mobile money payment."""
     return {
-        "message": "Redirect to Lemon Squeezy checkout",
-        "checkout_url": "https://your-lemonsqueezy-store.com/checkout"
+        "message": f"Send {PREMIUM_COST_UGX} UGX to {PAYMENT_RECIPIENT_NUMBER} to unlock premium features",
+        "payment_instructions": {
+            "amount": f"{PREMIUM_COST_UGX} UGX",
+            "recipient": PAYMENT_RECIPIENT_NUMBER,
+            "method": "Mobile Money (MTN/Airtel)",
+            "features_unlocked": PREMIUM_FEATURES,
+            "note": "Include your email in the payment reference for faster activation"
+        },
+        "support_contact": "support@fitgenius.com"
     }
 
 @router.post("/webhook/lemon-squeezy")
@@ -87,14 +95,20 @@ async def check_premium_status(current_user: dict = Depends(get_current_user)):
         "plan": subscription.get("plan", "free")
     }
 
-# Middleware to check premium status on endpoints
-def require_premium(current_user: dict = Depends(get_current_user)):
-    """Dependency to guard premium endpoints."""
-    # Check subscription status
-    # In production, query database
-    is_premium = False
+@router.post("/activate-premium")
+async def activate_premium(
+    user_email: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Manually activate premium for a user (admin only)."""
+    # Check if current user is admin
+    profile = await supabase_service.get_user_profile(current_user['id'])
+    if not profile or profile.get("email") != "admin@fitgenius.com":
+        raise HTTPException(status_code=403, detail="Admin access required")
     
-    if not is_premium:
-        raise HTTPException(status_code=403, detail="Premium subscription required")
-    
-    return current_user
+    # Find user by email and activate premium
+    # In production, this would update the user's subscription in database
+    return {
+        "message": f"Premium activated for {user_email}",
+        "status": "success"
+    }
