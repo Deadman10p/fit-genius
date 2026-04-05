@@ -1,25 +1,109 @@
-version: '3.8'
-
 services:
-  app:
-    build: .
-    ports:
-      - "8000:8000"
+  # PostgreSQL Database (for Supabase)
+  postgres:
+    image: postgres:15-alpine
+    container_name: fit-genius-db
     environment:
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - CHROMADB_ENDPOINT=${CHROMADB_ENDPOINT}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - GEMMA4_CLOUD_ENDPOINT=${GEMMA4_CLOUD_ENDPOINT}
-      - LEMON_SQUEEZY_API_KEY=${LEMON_SQUEEZY_API_KEY}
-      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
-      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-fit_genius}
     volumes:
-      - .:/app
-    depends_on:
-      - redis
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fit-genius-network
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
+    container_name: fit-genius-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fit-genius-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./fit-genius
+      dockerfile: Dockerfile
+    container_name: fit-genius-backend
+    environment:
+      # API Configuration
+      PYTHONUNBUFFERED: 1
+      
+      # Database
+      SUPABASE_URL: ${SUPABASE_URL:-http://postgres:5432}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-test-key}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # AI Models
+      ACTIVE_MODEL: ${ACTIVE_MODEL:-phi3-mini}
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT:-http://localhost:11434}
+      GEMMA4_CLOUD_ENDPOINT: ${GEMMA4_CLOUD_ENDPOINT:-}
+      
+      # External Services
+      CHROMADB_ENDPOINT: ${CHROMADB_ENDPOINT:-http://localhost:8000}
+      LEMON_SQUEEZY_API_KEY: ${LEMON_SQUEEZY_API_KEY:-}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      
+      # Admin
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-bulegafarid@gmail.com}
+      
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./fit-genius/app:/app/app
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - fit-genius-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./fit-genius/frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+        NODE_ENV: ${REACT_APP_ENV:-development}
+    container_name: fit-genius-frontend
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+      REACT_APP_ENV: ${REACT_APP_ENV:-development}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./fit-genius/frontend/src:/app/src
+      - ./fit-genius/frontend/public:/app/public
+    networks:
+      - fit-genius-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  fit-genius-network:
+    driver: bridge
