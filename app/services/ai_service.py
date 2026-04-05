@@ -1,13 +1,17 @@
+import os
 import requests
 import json
+from pathlib import Path
 from typing import Optional, List, Dict, Any
-from app.config import MODEL_CONFIG
+from app.config import MODEL_CONFIG, AI_MODEL_UPLOAD_DIR, AI_MODEL_FILE_NAME
 import asyncio
 
 class AIService:
     def __init__(self):
         self.config = MODEL_CONFIG
         self.active_model = self.config["active_model"]
+        self.uploaded_model_path = Path(AI_MODEL_UPLOAD_DIR) / AI_MODEL_FILE_NAME
+        os.makedirs(AI_MODEL_UPLOAD_DIR, exist_ok=True)
 
     async def _call_ollama(self, prompt: str, model_name: str) -> str:
         """Call Ollama endpoint for local models."""
@@ -41,8 +45,24 @@ class AIService:
                 return "Cloud AI endpoint unavailable. Please configure GEMMA4_CLOUD_ENDPOINT."
             return f"Error calling cloud endpoint: {str(e)}"
 
+    async def _call_uploaded_model(self, prompt: str) -> str:
+        """Stub for using an uploaded GUUF model in the future."""
+        if not self.uploaded_model_path.exists():
+            return (
+                "Uploaded AI model not found. "
+                f"Upload {AI_MODEL_FILE_NAME} to {AI_MODEL_UPLOAD_DIR} and set ACTIVE_MODEL=uploaded."
+            )
+        # TODO: Replace this stub with actual GUUF model loader and inference logic.
+        return (
+            f"Uploaded model loader stub detected at {self.uploaded_model_path}. "
+            "Replace this response with direct model inference once the GUUF loader is implemented."
+        )
+
     async def generate_response(self, prompt: str, stream: bool = False):
         """Generate response using configured model."""
+        if self.active_model == "uploaded":
+            return await self._call_uploaded_model(prompt)
+
         model_config = self.config["models"][self.active_model]
         
         if model_config["type"] == "ollama":

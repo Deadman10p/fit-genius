@@ -99,7 +99,7 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # AI Models
-ACTIVE_MODEL=phi3-mini  # phi3-mini, gemma4, or gemma4-cloud
+ACTIVE_MODEL=phi3-mini  # phi3-mini, gemma4, gemma4-cloud, or uploaded
 OLLAMA_ENDPOINT=http://localhost:11434
 GEMMA4_CLOUD_ENDPOINT=your_cloud_endpoint
 
