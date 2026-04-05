@@ -32,10 +32,14 @@ CHROMADB_ENDPOINT = os.getenv("CHROMADB_ENDPOINT", "http://localhost:8000")
 # Lemon Squeezy (kept for future use)
 LEMON_SQUEEZY_API_KEY = os.getenv("LEMON_SQUEEZY_API_KEY")
 
-# Manual Payment Configuration
-PREMIUM_COST_UGX = 5000
-PAYMENT_RECIPIENT_NUMBER = "+256 XXX XXX XXX"
-PREMIUM_FEATURES = ["ai_chat"]
+# Payment Configuration
+PREMIUM_COST_UGX = int(os.getenv("PREMIUM_COST_UGX", "5000"))
+PAYMENT_RECIPIENT_NUMBER = os.getenv("PAYMENT_RECIPIENT_NUMBER", "+256 XXX XXX XXX")
+PREMIUM_FEATURES = os.getenv("PREMIUM_FEATURES", "ai_chat").split(",")
+
+# AI model uploads
+AI_MODEL_UPLOAD_DIR = os.getenv("AI_MODEL_UPLOAD_DIR", "/app/ai_models")
+AI_MODEL_FILE_NAME = os.getenv("AI_MODEL_FILE_NAME", "model.guuf")
 
 # Firebase
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")

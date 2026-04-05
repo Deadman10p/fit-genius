@@ -32,16 +32,25 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
 async def subscribe_to_premium(
     current_user: dict = Depends(get_current_user)
 ):
-    """Initiate premium subscription via mobile money payment."""
+    """Return payment options for premium AI chat."""
     return {
-        "message": f"Send {PREMIUM_COST_UGX} UGX to {PAYMENT_RECIPIENT_NUMBER} to unlock premium features",
-        "payment_instructions": {
-            "amount": f"{PREMIUM_COST_UGX} UGX",
-            "recipient": PAYMENT_RECIPIENT_NUMBER,
-            "method": "Mobile Money (MTN/Airtel)",
-            "features_unlocked": PREMIUM_FEATURES,
-            "note": "Include your email in the payment reference for faster activation"
-        },
+        "message": "Choose a payment method to unlock premium AI chat.",
+        "payment_options": [
+            {
+                "type": "checkout",
+                "provider": "Lemon Squeezy",
+                "checkout_url": "https://your-lemonsqueezy-store.com/checkout",
+                "note": "Use this checkout for card and automated subscription payments."
+            },
+            {
+                "type": "mobile_money",
+                "amount": f"{PREMIUM_COST_UGX} UGX",
+                "recipient": PAYMENT_RECIPIENT_NUMBER,
+                "method": "Mobile Money (MTN/Airtel)",
+                "features_unlocked": PREMIUM_FEATURES,
+                "note": "Send the payment and use the same email address as your account."
+            }
+        ],
         "support_contact": "support@fitgenius.com"
     }
 
@@ -95,20 +104,3 @@ async def check_premium_status(current_user: dict = Depends(get_current_user)):
         "plan": subscription.get("plan", "free")
     }
 
-@router.post("/activate-premium")
-async def activate_premium(
-    user_email: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """Manually activate premium for a user (admin only)."""
-    # Check if current user is admin
-    profile = await supabase_service.get_user_profile(current_user['id'])
-    if not profile or profile.get("email") != "admin@fitgenius.com":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
-    # Find user by email and activate premium
-    # In production, this would update the user's subscription in database
-    return {
-        "message": f"Premium activated for {user_email}",
-        "status": "success"
-    }

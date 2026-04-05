@@ -7,7 +7,7 @@ A complete FastAPI backend for a personalized AI fitness and nutrition coaching 
 - **User Authentication**: Supabase JWT + Admin bcrypt authentication
 - **Gamification**: XP, levels, badges, challenges, and leaderboards
 - **Coach Service**: Encrypted text/voice coaching with Signal Protocol
-- **Payment Integration**: Manual mobile money payments (Lemon Squeezy ready for future)
+- **Payment Integration**: Lemon Squeezy checkout with mobile money option for premium AI chat
 - **Admin Dashboard**: Analytics, user management, feedback handling
 - **Push Notifications**: Firebase Cloud Messaging integration
 - **Gym Finder**: OpenStreetMap Overpass API integration
@@ -115,6 +115,10 @@ PREMIUM_FEATURES=ai_chat
 
 # Lemon Squeezy (optional - for future automated subscriptions)
 LEMON_SQUEEZY_API_KEY=your_lemon_squeezy_key
+
+# AI Model Uploads
+AI_MODEL_UPLOAD_DIR=/app/ai_models
+AI_MODEL_FILE_NAME=model.guuf
 
 # Admin
 ADMIN_PASSWORD_HASH=your_bcrypt_hash

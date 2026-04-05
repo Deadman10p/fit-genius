@@ -26,8 +26,8 @@ async def coach_chat(
     is_premium = subscription.get("status") == "active" and subscription.get("plan") == "premium"
     if not is_premium:
         raise HTTPException(
-            status_code=403, 
-            detail=f"AI chat is a premium feature. Send {PREMIUM_COST_UGX} UGX to {PAYMENT_RECIPIENT_NUMBER} to unlock premium access."
+            status_code=403,
+            detail="Premium AI chat requires payment. Call POST /payments/subscribe for Lemon Squeezy checkout and mobile money options."
         )
     
     # Build user context
