@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - CHROMADB_ENDPOINT=${CHROMADB_ENDPOINT}
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
+      - GEMMA4_CLOUD_ENDPOINT=${GEMMA4_CLOUD_ENDPOINT}
+      - LEMON_SQUEEZY_API_KEY=${LEMON_SQUEEZY_API_KEY}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

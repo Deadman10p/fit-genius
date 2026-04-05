@@ -1,0 +1,11 @@
+from app.routers.onboarding import router as onboarding_router
+from app.routers.profile import router as profile_router
+from app.routers.workouts import router as workouts_router
+from app.routers.nutrition import router as nutrition_router
+from app.routers.coach import router as coach_router
+from app.routers.gyms import router as gyms_router
+from app.routers.gamification import router as gamification_router
+from app.routers.notifications import router as notifications_router
+from app.routers.admin import router as admin_router
+from app.routers.feedback import router as feedback_router
+from app.routers.payments import router as payments_router
