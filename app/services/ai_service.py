@@ -21,6 +21,8 @@ class AIService:
             response.raise_for_status()
             return response.json()["response"]
         except Exception as e:
+            if not endpoint or endpoint.startswith("http://localhost"):
+                return "AI endpoint unavailable. Please start Ollama locally or configure GEMMA4_CLOUD_ENDPOINT."
             return f"Error calling Ollama: {str(e)}"
 
     async def _call_cloud(self, prompt: str) -> str:
@@ -35,6 +37,8 @@ class AIService:
             response.raise_for_status()
             return response.json()["response"]
         except Exception as e:
+            if not endpoint or endpoint == "YOUR_CLOUD_SERVER_URL":
+                return "Cloud AI endpoint unavailable. Please configure GEMMA4_CLOUD_ENDPOINT."
             return f"Error calling cloud endpoint: {str(e)}"
 
     async def generate_response(self, prompt: str, stream: bool = False):
